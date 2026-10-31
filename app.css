@@ -4782,7 +4782,6 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .bd-ailogo{display:block;width:22px;height:22px;background:url(logo.svg) center/contain no-repeat}
 
 /* Teilen-Popover: klein, direkt unter dem Button, ohne Abdunkeln/Blur */
-.bd2 .bd-share{width:300px;padding:10px;border-radius:14px}
 .bd2 .sp-me{display:flex;align-items:center;gap:10px;padding:4px 6px 10px;border-bottom:1px solid #eeeef3;margin-bottom:6px}.bd2 .sp-me b{font-size:14px;font-weight:600}.bd2 .sp-me em{margin-left:auto;font-style:normal;font-size:12px;color:#8a8a98}
 .bd2 .sp-h{margin:8px 6px 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8a8a98;font-weight:600}
 .bd2 .sp-r{display:flex;align-items:center;gap:11px;width:100%;padding:7px 6px;border-radius:10px;text-align:left}.bd2 .sp-r:hover{background:var(--soft)}
@@ -4808,3 +4807,26 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .bd-prop .pp-h{display:none}.bd2 .bd-prop .pp-sec{flex-direction:row}
 .bd2 .pp-steps button{width:42px;height:36px}
 @media (max-width:900px){.bd2 .bd-prop{top:66px;left:12px;right:auto;overflow-x:auto}}
+
+/* Teilen-Popover (Link + Person einladen) */
+.bd2 .bd-shp{width:340px;padding:12px 14px 14px}
+.bd2 .bd-shp .sp-h{margin:10px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8a8a98;font-weight:600}.bd2 .bd-shp .sp-h:first-child{margin-top:2px}
+.bd2 .sp-link,.bd2 .sp-inv{display:flex;gap:6px}
+.bd2 .sp-link input,.bd2 .sp-inv input{flex:1;min-width:0;height:38px;padding:0 11px;border-radius:11px;border:1px solid #e3e3ea;background:var(--soft);font-size:13px;outline:0}.bd2 .sp-inv input{background:#fff}.bd2 .sp-inv input:focus{border-color:#5b3df5}
+.bd2 .sp-link button,.bd2 .sp-inv button{height:38px;padding:0 14px;border-radius:11px;background:#5b3df5;color:#fff;font-size:13px;font-weight:600;flex:none}.bd2 .sp-link button:hover,.bd2 .sp-inv button:hover{background:#4d31dc}
+.bd2 .bd-shp .sp-me{display:flex;align-items:center;gap:10px;padding:2px 0;border:0;margin:0}.bd2 .bd-shp .sp-me b{font-size:14px;font-weight:600}.bd2 .bd-shp .sp-me em{margin-left:auto;font-style:normal;font-size:12px;color:#8a8a98}
+.bd2 .sp-n{margin:12px 0 0;font-size:11.5px;line-height:1.45;color:#8a8a98}
+/* Studix-AI-Button: eckig-abgerundet wie die anderen */
+.bd2 #ai-m{width:38px;height:38px;padding:0!important;gap:0;border-radius:11px!important;background:var(--soft)!important;color:#5b3df5!important;box-shadow:none;display:grid;place-items:center}
+.bd2 #ai-m:hover{background:#ecebf4!important}.bd2 #ai-m.on{background:#e3e0f7!important}
+/* Elemente-Panel: gleiche Breite wie das Titel-Dropdown, links grosse 1:1-Vorschauen, rechts kleine Sticker */
+.bd2 .el-panel{width:min(880px,calc(100% - 24px));max-height:min(640px,calc(100% - 100px))}
+.bd2 .el-body.el2{display:grid;grid-template-columns:1fr 290px;gap:0;padding:0}
+.bd2 .el-body.el2.only-l{grid-template-columns:1fr}.bd2 .el-body.el2.only-r{grid-template-columns:1fr}
+.bd2 .el-body.el2 .el-l{padding:6px 18px 18px;border-right:1px solid #eeeef3;min-width:0}.bd2 .el-body.el2 .el-r{padding:6px 14px 18px;min-width:0}
+.bd2 .el-body.el2.only-l .el-r,.bd2 .el-body.el2.only-r .el-l{display:none}.bd2 .el-body.el2.only-l .el-l,.bd2 .el-body.el2.only-r .el-r{border:0}
+.bd2 .el-l .el-grid{grid-template-columns:repeat(3,1fr);gap:12px}
+.bd2 .el-l .el-t{padding:10px}.bd2 .el-l .el-t .pv-box{aspect-ratio:1}
+.bd2 .el-r .el-grid.st{grid-template-columns:repeat(5,1fr);gap:4px}
+.bd2 .el-body.el2.only-r .el-r .el-grid.st{grid-template-columns:repeat(10,1fr)}
+@media (max-width:900px){.bd2 .el-body.el2{grid-template-columns:1fr}.bd2 .el-body.el2 .el-l{border:0}.bd2 .el-l .el-grid{grid-template-columns:repeat(2,1fr)}.bd2 .el-r .el-grid.st{grid-template-columns:repeat(6,1fr)}}
