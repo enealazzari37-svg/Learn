@@ -4979,3 +4979,19 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .sdock .ws-av:hover{background:rgba(0,0,0,.05)}
 .sdock .ws-av i{width:28px;height:28px;line-height:24px;border:2px solid #fff;margin-left:-7px;font-size:11.5px;position:static;transform:none}.sdock .ws-av i:first-child{margin-left:0}
 .sdock .ws-av i.more{background:#d6d6de;color:#333}
+
+/* Seitenleiste: kompakter, Profil/Einstellungen immer unten sichtbar (mit weichem Ausblenden nach oben) */
+.side{padding:12px 10px 0;gap:3px}
+.side .nav-grp{gap:1px}
+.side .nav-i{height:42px;border-radius:13px;padding:0 12px;gap:12px;font-size:14.5px}
+.side .nav-i svg{width:20px;height:20px}
+.side .rail-top{margin-bottom:2px}
+.side .qa-row{margin:2px 0 6px}
+.nav-tree .nav-f{padding-top:6px;padding-bottom:6px}
+.side .sp{flex:1;min-height:6px}
+.side-foot{position:sticky;bottom:0;margin-top:auto;padding:10px 0 12px;background:#f3f3f4;z-index:3;display:flex;flex-direction:column;gap:6px;flex:none}
+.side-foot::before{content:"";position:absolute;left:-10px;right:-10px;top:-34px;height:34px;pointer-events:none;background:linear-gradient(to top,#f3f3f4 0%,rgba(243,243,244,0) 100%);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-mask-image:linear-gradient(to top,#000 20%,transparent);mask-image:linear-gradient(to top,#000 20%,transparent)}
+.side-foot .nav-i.prof{margin-top:0;height:auto;padding:7px 8px}
+.side-foot .clog{margin:0;padding:9px 12px;gap:6px}
+.side-foot .clog-l span:nth-child(n+3){display:none}
+@media (max-width:900px){.side-foot{display:none}}
