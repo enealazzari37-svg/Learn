@@ -4869,3 +4869,18 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .emp-i{width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--c) 13%,#fff);color:var(--c);display:grid;place-items:center;flex:none}.emp-i svg{width:19px;height:19px}
 .emp-c b{display:block;font-size:14px;font-weight:600;color:#111}.emp-c small{display:block;font-size:12px;color:#8a8a98;margin-top:1px;line-height:1.3}
 @media (max-width:900px){.emp-g{grid-template-columns:repeat(2,1fr)}}
+
+/* Board: eckig-modern – graue Spalten, weisse Karten, Prioritäts-Marker, 3-Punkte-Menü */
+.dbb-top{display:flex;justify-content:flex-end;margin:0 0 12px}.dbb-top .btn{display:inline-flex;align-items:center;gap:7px;border-radius:12px;height:40px;padding:0 16px;font-weight:600}.dbb-top .btn svg{width:16px;height:16px}
+.dbb{grid-auto-columns:minmax(260px,1fr);gap:12px}
+.lane{background:#f1f1f4;border-radius:16px;padding:10px}.lane.over{background:#ebe7fb;box-shadow:inset 0 0 0 2px #cfc4ff}
+.lane header{background:#fff;border-radius:11px;padding:9px 12px;margin:0 0 10px;gap:9px}.lane header b{font-size:14px;font-weight:600}.lane header small{margin-left:auto;background:var(--soft);border-radius:7px;padding:1px 8px;font-size:12px}
+.lane .ldot{width:8px;height:8px;border-radius:50%;flex:none}
+.kcard{border-radius:12px;padding:12px;border:1px solid #ececf2;box-shadow:none;cursor:grab}.kcard:hover{transform:none;box-shadow:0 4px 14px rgba(20,20,50,.08);border-color:#dedee8}
+.kc-top{display:flex;align-items:center;justify-content:space-between;min-height:24px;margin-bottom:8px}
+.kprio{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:7px;background:#eee;color:#444}
+.kprio.hi{background:#ffe9e7;color:#d6372e}.kprio.md{background:#fff1d6;color:#b86e00}.kprio.lo{background:#e2f6e8;color:#1a8a47}
+.kc-more{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#8a8a98;margin-right:-4px}.kc-more:hover{background:var(--soft);color:#111}.kc-more svg{width:16px;height:16px}
+.kcard>b{font-size:14.5px;margin-bottom:3px}.kdesc{margin:0 0 8px;font-size:12.5px;color:#8a8a98;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4}
+.kmeta{border-top:1px solid #f0f0f4;padding-top:8px;margin-top:6px}.kmeta:empty{display:none}
+.dbadd.sm{border-radius:10px;background:transparent}.dbadd.sm:hover{background:#e7e7ec}
