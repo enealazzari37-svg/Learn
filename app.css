@@ -4995,3 +4995,9 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .side-foot .clog{margin:0;padding:9px 12px;gap:6px}
 .side-foot .clog-l span:nth-child(n+3){display:none}
 @media (max-width:900px){.side-foot{display:none}}
+
+/* Leerer Ordner: kein Text, nur ein Block mit allen Funktionen oben */
+.emptybox.emp2{max-width:none;margin:0 0 16px;padding:10px;text-align:left;border:1px solid #ececf2;border-radius:16px;background:#fff;display:block;min-height:0}
+.emp2 .emp-g{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.emp2 .emp-c{padding:8px 10px}
+@media (max-width:900px){.emptybox.emp2 .emp-g{grid-template-columns:repeat(2,1fr)}}
