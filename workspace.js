@@ -210,3 +210,11 @@ function wsHub(host, wid, W, nameOf, isDead) {
   }
   load(); WSHUB_T = setInterval(() => { if (!document.activeElement || document.activeElement.id !== "hch-i") load(); }, 6000); LEAVE.push(() => clearInterval(WSHUB_T));
 }
+
+/* ---------- Überarbeitete Zeichen-Icons (Stift, Marker, Radierer): einheitlich, klar, abgerundet ---------- */
+Object.assign(P, {
+  pen: '<path d="M4.6 19.4l.9-4L16.5 4.4a2.3 2.3 0 0 1 3.2 3.2L8.7 18.6z"/><path d="M14.3 6.6l3.2 3.2M4.6 19.4l4-.9"/>',
+  hl: '<path d="M15.2 4.3l4.5 4.5a1.4 1.4 0 0 1 0 2l-6.6 6.6a1.4 1.4 0 0 1-2 0L6.6 12.9a1.4 1.4 0 0 1 0-2l6.6-6.6a1.4 1.4 0 0 1 2 0z"/><path d="M6.8 12.8l-2.3 4.4 3.1.3 2-1.6M4 20.4h8.5"/>',
+  eraser: '<path d="M13.2 5.6a2.2 2.2 0 0 1 3.1 0l2.9 2.9a2.2 2.2 0 0 1 0 3.1l-7.1 7.1a2.2 2.2 0 0 1-1.6.7H8.9a2.2 2.2 0 0 1-1.6-.7l-2.5-2.5a2.2 2.2 0 0 1 0-3.1z"/><path d="M9.1 9.7l5.2 5.2M10.4 19.4H19"/>',
+});
+P.brush = P.pen;

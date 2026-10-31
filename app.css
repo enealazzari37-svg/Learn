@@ -5049,3 +5049,14 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .drc .drr:hover{box-shadow:0 8px 20px rgba(20,20,50,.1);transform:translateY(-2px)}
 .drc .drr .dk{width:42px;height:42px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--soft)}
 .drc .drr b{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drc .drr small{font-size:12px;color:#8a8a98}.drc .drr>span{min-width:0}
+
+/* Datei-Explorer: Tabs, "Zuletzt verwendet"-Karten, dann die Tabelle */
+.ftabs-h{margin:8px 0 10px}
+.ftabs{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;background:#f1f1f4;border-radius:12px;margin:0 0 14px}
+.ftabs button{height:32px;padding:0 14px;border-radius:9px;font-size:13.5px;font-weight:600;color:#7a7a88;border:1px solid transparent}
+.ftabs button:hover{color:#16161c}
+.ftabs button.on{background:#fff;color:#16161c;border-color:#e0e0e8;box-shadow:0 1px 2px rgba(20,20,50,.06)}
+.drc{margin:0 0 6px}
+.drc .drr{flex:0 0 280px;padding:12px 14px}
+.drc .drr .dk{width:44px;height:44px;border-radius:12px;background:#f3f3f6}
+.drc .drr b{font-size:14.5px;font-weight:600}
