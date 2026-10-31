@@ -19,7 +19,7 @@ V.draw = async (m, id) => {
   const fp = folderPath(d.folderId);
   const T = Object.fromEntries(TOOLS.map(([k, t, i]) => [k, [t, i]])), tb = k => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${T[k][0]}" aria-label="${T[k][0]}">${ic(T[k][1])}</button>`;
   m.innerHTML = `<div class="editor board dfull bd2"><div class="bd-stage"><div class="cvwrap inf" id="cvw"><canvas id="cv"></canvas><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden><select id="bg" hidden><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select><button id="cl" hidden></button></div>
-  <div class="bd-fl bd-bar" id="bar"><button class="bd-ib" id="eb" aria-label="Zurück" title="Zurück">${ic("back")}</button><button class="bd-ttl" id="tt" aria-haspopup="true" aria-expanded="false"><span class="bd-th">${d.thumb ? `<img src="${d.thumb}" alt="">` : ic("brush")}</span><b id="ttx">${esc(d.title)}</b>${ic("chev")}</button><i class="bd-vs"></i><button class="bd-ib" id="addo" title="Elemente hinzufügen" aria-label="Elemente">${ic("plus")}</button><button class="bd-ib" id="fr" title="Rahmen einfügen" aria-label="Rahmen">${ic("hash")}</button><button class="bd-ib" id="fit" title="Alles anzeigen" aria-label="Alles anzeigen">${ic("full")}</button><button class="bd-ib" id="mo-m" title="Mehr" aria-label="Mehr">${ic("more")}</button><i class="bd-vs"></i><i class="bd-vs"></i><button class="bd-ai2" id="ai-m" title="Studix AI" aria-label="Studix AI"><i class="bd-ailogo"></i></button><button class="bd-col" id="cob" aria-haspopup="true" aria-expanded="false"><span class="bd-avs"><span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span><span class="bd-me inv">${ic("plus")}</span></span>${ic("chev")}</button><span class="saved" id="sv">Gespeichert</span>
+  <div class="bd-fl bd-bar" id="bar"><button class="bd-ib" id="eb" aria-label="Zurück" title="Zurück">${ic("back")}</button><button class="bd-ttl" id="tt" aria-haspopup="true" aria-expanded="false"><span class="bd-th">${d.thumb ? `<img src="${d.thumb}" alt="">` : ic("brush")}</span><b id="ttx">${esc(d.title)}</b>${ic("chev")}</button><i class="bd-vs"></i><button class="bd-ib" id="addo" title="Elemente, Sticker und Symbole" aria-label="Elemente">${ic("plus")}<span>Elemente</span></button><button class="bd-ib" id="fr" title="Rahmen einfügen" aria-label="Rahmen">${ic("hash")}</button><button class="bd-ib" id="fit" title="Alles anzeigen" aria-label="Alles anzeigen">${ic("full")}</button><button class="bd-ib" id="mo-m" title="Mehr" aria-label="Mehr">${ic("more")}</button><i class="bd-vs"></i><i class="bd-vs"></i><button class="bd-ai2" id="ai-m" title="Studix AI" aria-label="Studix AI"><i class="bd-ailogo"></i></button><button class="bd-col" id="cob" aria-haspopup="true" aria-expanded="false"><span class="bd-avs"><span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span><span class="bd-me inv">${ic("plus")}</span></span>${ic("chev")}</button><span class="saved" id="sv">Gespeichert</span>
   <input id="et" value="${esc(d.title)}" hidden><button id="exp" hidden></button><button id="done" hidden></button><button id="shb" hidden></button></div>
   <div class="bd-pop bd-panel" id="pnl" hidden></div><div class="bd-pop el-panel" id="elp" hidden></div><div class="bd-pop bd-colm" id="colm" hidden></div>
   <div class="bd-tools" role="toolbar" aria-label="Werkzeuge">${tb("hand")}${tb("pen")}${tb("hl")}${tb("eraser")}<i class="sep"></i><div class="bd-grp"><button class="tbtn" id="shp" title="Formen und Linien" aria-label="Formen">${ic("square")}<b class="cor"></b></button><div class="bd-fly" id="fly" hidden>${["rect", "ellipse", "line", "arrow"].map(tb).join("")}</div></div>${tb("text")}<button class="tbtn" id="qs" title="Haftnotiz" aria-label="Haftnotiz">${ic("note")}</button>${tb("img")}<i class="sep"></i><button class="tbtn" id="colb" title="Farbe" aria-label="Farbe" hidden><i class="cprev"></i></button><button class="tbtn" id="szb" title="Stärke" aria-label="Stärke" hidden><i class="sprev"></i></button><i class="sep" id="sep2" hidden></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen (Strg+Umschalt+Z)" aria-label="Wiederholen">${ic("redo")}</button></div>
@@ -76,11 +76,16 @@ V.draw = async (m, id) => {
     return false;
   }
 
+  { const bar = $("#bar", m), tools = $(".bd-tools", m), stg = $(".bd-stage", m), sp = document.createElement("i"); sp.className = "bd-vs";
+    const dock = () => { const on = innerWidth > 1280; if (on && tools.parentNode !== bar) { bar.insertBefore(tools, $("#addo", m)); bar.insertBefore(sp, $("#addo", m)); } else if (!on && tools.parentNode === bar) { sp.remove(); stg.appendChild(tools); } bar.classList.toggle("docked", on); };
+    dock(); addEventListener("resize", dock); LEAVE.push(() => removeEventListener("resize", dock)); }
+  const setTh = () => { const th = $(".bd-th", m); if (th && d.thumb) th.innerHTML = `<img src="${d.thumb}" alt="">`; };
+  if (!d.thumb) setTimeout(() => { try { d.thumb = snapshot(480).toDataURL("image/jpeg", .6); setTh(); } catch {} }, 400);
   /* persistence */
   const persist = debounce(async () => {
     if (!D.docs.includes(d)) return;
     d.thumb = snapshot(480).toDataURL("image/jpeg", .6); d.title = titleEl.value.trim() || "Zeichnung"; d.updated = Date.now();
-    await KV.set("draw:" + id, { strokes: st.strokes, objs: st.objs, bg: st.bg, H: st.H, W, fmt: "endless", cam: { ...cam } }); save(); savedEl.textContent = "Gespeichert";
+    await KV.set("draw:" + id, { strokes: st.strokes, objs: st.objs, bg: st.bg, H: st.H, W, fmt: "endless", cam: { ...cam } }); save(); savedEl.textContent = "Gespeichert"; setTh();
   }, 700);
   const touch = () => { savedEl.textContent = "Speichert…"; persist(); };
   const snap = () => { st.hist.push({ s: [...st.strokes], o: JSON.stringify(st.objs) }); if (st.hist.length > 80) st.hist.shift(); st.redo = []; };
@@ -136,15 +141,22 @@ V.draw = async (m, id) => {
   /* UI */
   $$("[data-t]", m).forEach(b => b.onclick = () => setTool(b.dataset.t));
   const STEPS_OF = t => t === "eraser" ? [[8, "S"], [16, "M"], [28, "L"], [44, "XL"]] : t === "text" ? [[2, "S"], [4, "M"], [7, "L"], [12, "XL"]] : t === "hl" ? [[3, "S"], [6, "M"], [10, "L"], [14, "XL"]] : [[2, "Fein"], [4, "Normal"], [8, "Dick"], [14, "Breit"], [22, "Pinsel"]];
-  const closeProp = () => { const el = $("#prop", m); if (el) el.hidden = true; $$("#colb, #szb", m).forEach(b => b.classList.remove("open")); };
+  const closeProp = () => {};
   function renderProp() {
     const t = st.tool, draws = ["pen", "hl", "line", "arrow", "rect", "ellipse", "text"].includes(t), er = t === "eraser"; closeProp();
-    $("#colb", m).hidden = !draws; $("#szb", m).hidden = !(draws || er); $("#sep2", m).hidden = !(draws || er);
-    paintPrev();
+    const el = $("#prop", m); el.hidden = !(draws || er); if (!el.hidden) fillProp(); paintPrev();
   }
   function paintPrev() {
     const t = st.tool, er = t === "eraser", cur = er ? (st.esize || 16) : st.size; $("#colb i", m).style.background = st.color; $("#colb", m).classList.toggle("lt", /^#f{3,6}$/i.test(st.color));
     const p = $("#szb i", m); p.className = "sprev" + (er ? " er" : t === "text" ? " tx" : ""); if (t === "text") { p.textContent = "A"; p.style.fontSize = 10 + cur * 1.4 + "px"; p.style.height = p.style.width = ""; } else { p.textContent = ""; p.style.fontSize = ""; p.style.width = er ? Math.min(22, 6 + cur / 2.4) + "px" : ""; p.style.height = er ? Math.min(22, 6 + cur / 2.4) + "px" : Math.max(2, Math.min(14, cur * (t === "hl" ? .8 : .7))) + "px"; }
+  }
+  function fillProp() {
+    const t = st.tool, el = $("#prop", m), er = t === "eraser", cols = t === "hl" ? HLCOL : COL, STEPS = STEPS_OF(t), cur = er ? (st.esize || 16) : st.size, near = STEPS.reduce((a, b) => Math.abs(b[0] - cur) < Math.abs(a[0] - cur) ? b : a)[0];
+    el.innerHTML = (er ? "" : `<div class="pp-sec"><b class="pp-h">Farbe</b><div class="pp-cols">${cols.map(c => `<button class="cdot ${c.toLowerCase() === st.color.toLowerCase() ? "on" : ""}" data-c="${c}" style="background:${c}" title="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="${/^#[0-9a-f]{6}$/i.test(st.color) ? st.color : "#111111"}"></label></div></div><i class="pp-sep"></i>`)
+      + `<div class="pp-sec"><b class="pp-h">${t === "text" ? "Schriftgröße" : er ? "Radiergröße" : "Stärke"}</b><div class="pp-steps">${STEPS.map(([v, n]) => `<button type="button" data-ps="${v}" class="${v === near ? "on" : ""}" title="${n}" aria-label="${n}"><span class="pp-sv">${t === "text" ? `<span style="font-size:${10 + v * 1.6}px;font-weight:700">A</span>` : er ? `<i class="er" style="width:${6 + v / 2.4}px;height:${6 + v / 2.4}px"></i>` : `<i style="width:${Math.min(26, 6 + v * 1.1)}px;height:${Math.max(2, v * (t === "hl" ? 1.2 : 1))}px;${t === "hl" ? "opacity:.45;border-radius:3px" : ""}"></i>`}</span></button>`).join("")}</div></div>`;
+    $$("[data-c]", el).forEach(b => b.onclick = () => { st.color = b.dataset.c; fillProp(); paintPrev(); });
+    const cc = $("#cc", el); if (cc) cc.oninput = e => { st.color = e.target.value; paintPrev(); };
+    $$("[data-ps]", el).forEach(b => b.onclick = () => { if (er) st.esize = +b.dataset.ps; else st.size = +b.dataset.ps; fillProp(); paintPrev(); });
   }
   function openProp(kind, btn) {
     const t = st.tool, el = $("#prop", m), er = t === "eraser", cols = t === "hl" ? HLCOL : COL, STEPS = STEPS_OF(t), cur = er ? (st.esize || 16) : st.size, near = STEPS.reduce((a, b) => Math.abs(b[0] - cur) < Math.abs(a[0] - cur) ? b : a)[0];
@@ -207,7 +219,7 @@ V.draw = async (m, id) => {
   OBJ = boardObjects({ host: cvw, cam, st, snap, touch, render }); LEAVE.push(() => OBJ.destroy());
   $("#qs", m).onclick = () => OBJ.add("sticky");
   const stage = $(".bd-stage", m); stage.appendChild($("#fly", m)); [stage, cvw].forEach(x => x.addEventListener("scroll", () => { x.scrollTop = 0; x.scrollLeft = 0; }));
-  $("#shp", m).onclick = e => { e.stopPropagation(); const f = $("#fly", m); f.hidden = !f.hidden; if (!f.hidden) { const r = e.currentTarget.getBoundingClientRect(), sr = stage.getBoundingClientRect(); if (innerWidth > 900) { f.style.left = r.right - sr.left + 12 + "px"; f.style.top = r.top - sr.top + "px"; f.style.bottom = "auto"; } else { f.style.left = Math.max(8, r.left - sr.left - 40) + "px"; f.style.top = "auto"; f.style.bottom = sr.bottom - r.top + 10 + "px"; } } }; cvw.addEventListener("pointerdown", () => { $("#fly", m).hidden = true; });
+  $("#shp", m).onclick = e => { e.stopPropagation(); const f = $("#fly", m); f.hidden = !f.hidden; if (!f.hidden) { const r = e.currentTarget.getBoundingClientRect(), sr = stage.getBoundingClientRect(); if ($("#bar", m).classList.contains("docked")) { f.style.left = r.left - sr.left + "px"; f.style.top = r.bottom - sr.top + 12 + "px"; f.style.bottom = "auto"; } else if (innerWidth > 900) { f.style.left = r.right - sr.left + 12 + "px"; f.style.top = r.top - sr.top + "px"; f.style.bottom = "auto"; } else { f.style.left = Math.max(8, r.left - sr.left - 40) + "px"; f.style.top = "auto"; f.style.bottom = sr.bottom - r.top + 10 + "px"; } } }; cvw.addEventListener("pointerdown", () => { $("#fly", m).hidden = true; });
   $("#hp", m).onclick = () => modal(`<h3>Tastenkürzel</h3><div class="kbd-l">${[["V", "Auswählen / Verschieben"], ["P", "Stift"], ["H", "Marker"], ["E", "Radierer"], ["L", "Linie"], ["A", "Pfeil"], ["R", "Rechteck"], ["O", "Ellipse"], ["T", "Text"], ["Strg + Z", "Rückgängig"], ["Strg + Umschalt + Z", "Wiederholen"], ["Leertaste + Ziehen", "Fläche verschieben"], ["Strg + Mausrad", "Zoomen"], ["Entf", "Gewähltes Element löschen"]].map(([k, v]) => `<div><kbd>${k}</kbd><span>${v}</span></div>`).join("")}</div>`);
   $("#shb", m).onclick = () => shareBoard();
   $("#fr", m).onclick = () => OBJ.add("frame"); $("#fit", m).onclick = () => showAll();
