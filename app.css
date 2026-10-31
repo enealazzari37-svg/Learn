@@ -4851,3 +4851,8 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .el-l .el-grid{grid-template-columns:repeat(4,1fr);gap:2px}.bd2 .el-l .el-t{padding:6px}
 .bd2 .el-r .el-grid.st{grid-template-columns:repeat(6,1fr);gap:0}.bd2 .el-grid.st .el-t{padding:3px}
 .bd2 .el-t small{font-size:11.5px;font-weight:500;color:#555}
+/* Farbe + Stärke: wirklich nur eine Reihe */
+.bd2 #prop:not([hidden]){display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;grid-template-columns:none!important;column-count:1!important}
+.bd2 #prop .pp-sec{display:contents!important}
+.bd2 #prop .pp-cols,.bd2 #prop .pp-steps{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;width:auto!important;flex:none}
+.bd2 #prop .pp-sep{display:block;flex:none}
