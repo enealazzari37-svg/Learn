@@ -5060,3 +5060,7 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .drc .drr{flex:0 0 280px;padding:12px 14px}
 .drc .drr .dk{width:44px;height:44px;border-radius:12px;background:#f3f3f6}
 .drc .drr b{font-size:14.5px;font-weight:600}
+
+/* Leerer Ordner: nur ein mittiger Hinweis, keine Box */
+.emptybox.emp2{border:0;background:none;box-shadow:none;padding:60px 0;margin:0;text-align:center}
+.emp2 .emp-none{margin:0;font-size:15px;color:#8a8a98}
