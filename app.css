@@ -4884,3 +4884,19 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .kcard>b{font-size:14.5px;margin-bottom:3px}.kdesc{margin:0 0 8px;font-size:12.5px;color:#8a8a98;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4}
 .kmeta{border-top:1px solid #f0f0f4;padding-top:8px;margin-top:6px}.kmeta:empty{display:none}
 .dbadd.sm{border-radius:10px;background:transparent}.dbadd.sm:hover{background:#e7e7ec}
+
+/* Kalender: eckiges, übersichtliches Raster, Termine dezent */
+.dcal{border-radius:14px;padding:16px;box-shadow:none;border:1px solid #ececf0}
+.dcg{gap:0;border-top:1px solid #e6e6ec;border-left:1px solid #e6e6ec}
+.dcg>*{border-right:1px solid #e6e6ec;border-bottom:1px solid #e6e6ec;box-sizing:border-box}
+.dcg .wd{padding:10px 0;font-size:12.5px;font-weight:600;color:#55556a;background:#fafafc}
+.dcg>i{background:#f4f4f6}
+.dcell{background:#fff;border-radius:0;min-height:100px;padding:6px 7px;gap:3px}.dcell:hover{background:#fafafc}
+.dcell b{font-size:12.5px;font-weight:500;color:#555}.dcell.today b{background:#111;color:#fff}
+.dev{background:#f6f4ff;border:1px solid #e6e0ff;color:#4a3fa5;border-radius:6px;padding:2px 6px;font-size:11.5px;font-weight:500}
+.dcell small{font-size:11px;color:#8a8a98}
+.plw-mon{gap:0;border-top:1px solid #e6e6ec;border-left:1px solid #e6e6ec}
+.plw-mon>*{border-radius:0!important;border-top:0!important;border-left:0!important;border-right:1px solid #e6e6ec!important;border-bottom:1px solid #e6e6ec!important;box-sizing:border-box}
+.plw-mh{padding:9px 0 9px;background:#fafafc;font-weight:600;color:#55556a}
+.plw-mc{background:#fff;padding:6px 7px}.plw-mc:hover{background:#fafafc}.plw-mc.empty{background:#f4f4f6!important;border-right:1px solid #e6e6ec!important;border-bottom:1px solid #e6e6ec!important;pointer-events:none}
+.plw-mc i{border-radius:6px;font-weight:500}
