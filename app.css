@@ -4953,3 +4953,8 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .hch-l{max-height:190px;min-height:120px}
 .ha-bars{min-height:56px}
 @media (max-width:900px){.hub{grid-template-columns:1fr}.hub>.hc-ch{grid-column:auto!important}}
+
+/* Workspace-Kopfzeile: Umschalter links, Trenner, Mitglieder nebeneinander (allein: Plus dahinter) */
+.ws-sw{margin:0;padding:3px}.ws-sw button{height:32px;padding:0 13px}
+.ws-av{display:inline-flex;align-items:center}.ws-av i{margin-left:-6px}.ws-av i:first-child{margin-left:0}
+.ws-av i.inv{background:#fff!important;color:#6a6a78;border:1.5px dashed #c5c5d0;display:grid;place-items:center;margin-left:-4px}.ws-av i.inv svg{width:14px;height:14px}
