@@ -5033,3 +5033,19 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .tpl-p{position:absolute;left:12px;bottom:10px;width:0;height:0;opacity:0}
 .tpl:hover .tpl-a{transform:translateY(-50%) rotate(4deg) scale(1.05)}
 .tpl-a{width:88px;height:68px}
+
+/* Erstellen-Kacheln wie in der Vorlage: weiss, dunkles Icon-Quadrat, Plus rechts oben, Titel unten */
+.tpx-row{display:flex;gap:12px;overflow-x:auto;padding:8px 6px 18px;margin:-2px -6px 6px;scrollbar-width:none}.tpx-row::-webkit-scrollbar{display:none}
+.tpx{position:relative;flex:0 0 210px;height:112px;border-radius:14px;background:#fff;border:1px solid #e6e6ec;box-shadow:0 1px 2px rgba(20,20,50,.04);padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;color:#16161c;transition:background .25s,color .25s,transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,border-color .25s}
+.tpx-i{width:38px;height:38px;border-radius:10px;background:#16161c;color:#fff;display:grid;place-items:center;transition:background .25s}.tpx-i svg{width:20px;height:20px}
+.tpx-p{position:absolute;right:14px;top:12px;color:#9a9aa8;font-style:normal;transition:color .25s}.tpx-p svg{width:18px;height:18px}
+.tpx b{font-size:15px;font-weight:600}
+.tpx:hover{background:#1c1c20;color:#fff;border-color:#1c1c20;transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,20,50,.18)}
+.tpx:hover .tpx-i{background:#2c2c32}.tpx:hover .tpx-p{color:#fff}
+/* Zuletzt benutzt: eigene Reihe, dann erst die Tabelle */
+.drc{display:block;width:auto;max-width:none;margin:0 0 18px;padding:0}
+.drc-row{display:flex;gap:12px;overflow-x:auto;padding:4px 6px 14px;margin:0 -6px;scrollbar-width:none}.drc-row::-webkit-scrollbar{display:none}
+.drc .drr{flex:0 0 260px;display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#fff;border:1px solid #e6e6ec;box-shadow:0 1px 2px rgba(20,20,50,.04);text-align:left;min-width:0;transition:box-shadow .25s,transform .25s}
+.drc .drr:hover{box-shadow:0 8px 20px rgba(20,20,50,.1);transform:translateY(-2px)}
+.drc .drr .dk{width:42px;height:42px;border-radius:11px;flex:none;display:grid;place-items:center;background:var(--soft)}
+.drc .drr b{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.drc .drr small{font-size:12px;color:#8a8a98}.drc .drr>span{min-width:0}
