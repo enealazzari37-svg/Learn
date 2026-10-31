@@ -77,9 +77,9 @@ V.draw = async (m, id) => {
   }
 
   { const bar = $("#bar", m), tools = $(".bd-tools", m), stg = $(".bd-stage", m), sp = document.createElement("i"); sp.className = "bd-vs";
-    const dock = () => { const on = innerWidth > 1280; if (on && tools.parentNode !== bar) { bar.insertBefore(tools, $("#addo", m)); bar.insertBefore(sp, $("#addo", m)); } else if (!on && tools.parentNode === bar) { sp.remove(); stg.appendChild(tools); } bar.classList.toggle("docked", on); };
+    const dock = () => { const on = innerWidth > 1280; if (on && tools.parentNode !== bar) { bar.insertBefore(tools, $("#addo", m)); bar.insertBefore(sp, $("#addo", m)); } else if (!on && tools.parentNode === bar) { sp.remove(); stg.appendChild(tools); } bar.classList.toggle("docked", on); setTimeout(() => { try { syncProp(); } catch {} }, 0); };
     dock(); addEventListener("resize", dock); LEAVE.push(() => removeEventListener("resize", dock)); }
-  const setTh = () => { const th = $(".bd-th", m); if (th && d.thumb) th.innerHTML = `<img src="${d.thumb}" alt="">`; };
+  const setTh = () => { const th = $(".bd-th", m); if (th && d.thumb) th.innerHTML = `<img src="${d.thumb}" alt="" onerror="this.remove()">`; };
   if (!d.thumb) setTimeout(() => { try { d.thumb = snapshot(480).toDataURL("image/jpeg", .6); setTh(); } catch {} }, 400);
   /* persistence */
   const persist = debounce(async () => {
@@ -144,12 +144,14 @@ V.draw = async (m, id) => {
   const closeProp = () => {};
   function renderProp() {
     const t = st.tool, draws = ["pen", "hl", "line", "arrow", "rect", "ellipse", "text"].includes(t), er = t === "eraser"; closeProp();
-    const el = $("#prop", m); el.hidden = !(draws || er); if (!el.hidden) fillProp(); paintPrev();
+    const el = $("#prop", m); el.hidden = !(draws || er); if (!el.hidden) fillProp(); syncProp(); paintPrev();
   }
   function paintPrev() {
     const t = st.tool, er = t === "eraser", cur = er ? (st.esize || 16) : st.size; $("#colb i", m).style.background = st.color; $("#colb", m).classList.toggle("lt", /^#f{3,6}$/i.test(st.color));
     const p = $("#szb i", m); p.className = "sprev" + (er ? " er" : t === "text" ? " tx" : ""); if (t === "text") { p.textContent = "A"; p.style.fontSize = 10 + cur * 1.4 + "px"; p.style.height = p.style.width = ""; } else { p.textContent = ""; p.style.fontSize = ""; p.style.width = er ? Math.min(22, 6 + cur / 2.4) + "px" : ""; p.style.height = er ? Math.min(22, 6 + cur / 2.4) + "px" : Math.max(2, Math.min(14, cur * (t === "hl" ? .8 : .7))) + "px"; }
   }
+  function syncProp() { const bar = $("#bar", m), el = $("#prop", m), stg = $(".bd-stage", m); if (!bar || !el) return; const r = bar.getBoundingClientRect(), sr = stg.getBoundingClientRect(); el.style.left = r.left - sr.left + "px"; el.style.top = r.bottom - sr.top - 1 + "px"; el.style.width = r.width + "px"; bar.classList.toggle("ext", !el.hidden); }
+  addEventListener("resize", () => setTimeout(syncProp, 30)); setTimeout(syncProp, 200);
   function fillProp() {
     const t = st.tool, el = $("#prop", m), er = t === "eraser", cols = t === "hl" ? HLCOL : COL, STEPS = STEPS_OF(t), cur = er ? (st.esize || 16) : st.size, near = STEPS.reduce((a, b) => Math.abs(b[0] - cur) < Math.abs(a[0] - cur) ? b : a)[0];
     el.innerHTML = (er ? "" : `<div class="pp-sec"><b class="pp-h">Farbe</b><div class="pp-cols">${cols.map(c => `<button class="cdot ${c.toLowerCase() === st.color.toLowerCase() ? "on" : ""}" data-c="${c}" style="background:${c}" title="${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="${/^#[0-9a-f]{6}$/i.test(st.color) ? st.color : "#111111"}"></label></div></div><i class="pp-sep"></i>`)

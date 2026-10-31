@@ -4830,3 +4830,11 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .el-r .el-grid.st{grid-template-columns:repeat(5,1fr);gap:4px}
 .bd2 .el-body.el2.only-r .el-r .el-grid.st{grid-template-columns:repeat(10,1fr)}
 @media (max-width:900px){.bd2 .el-body.el2{grid-template-columns:1fr}.bd2 .el-body.el2 .el-l{border:0}.bd2 .el-l .el-grid{grid-template-columns:repeat(2,1fr)}.bd2 .el-r .el-grid.st{grid-template-columns:repeat(6,1fr)}}
+
+/* Farbe/Stärke: Leiste klappt nach unten aus, gleiche Breite, eine Reihe */
+.bd2 .bd-bar.ext{border-bottom-left-radius:0;border-bottom-right-radius:0;box-shadow:0 0 0 1px rgba(20,20,50,.06)}
+.bd2 .bd-prop{width:auto;max-width:none;min-width:0;transform:none;border-radius:0 0 14px 14px;padding:8px 14px 10px;flex-wrap:nowrap;gap:18px;overflow-x:auto;box-shadow:0 8px 14px rgba(20,20,50,.1),0 0 0 1px rgba(20,20,50,.06);border-top:1px solid #eeeef3;background:#fff}
+.bd2 .bd-prop .pp-sec,.bd2 .bd-prop .pp-cols,.bd2 .bd-prop .pp-steps{flex-direction:row;flex-wrap:nowrap;align-items:center}
+.bd2 .bd-prop .pp-cols{gap:9px}.bd2 .bd-prop .cdot{width:26px;height:26px;flex:none}
+.bd2 .bd-prop .pp-sep{width:1px;height:28px;align-self:center;background:#e6e6ec;flex:none}
+.bd2 .bd-prop .pp-steps button{width:42px;height:34px;flex:none}
