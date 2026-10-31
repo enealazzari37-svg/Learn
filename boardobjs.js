@@ -82,10 +82,12 @@ function boardObjects(X) {
   function showBar() {
     killBar(); if (!sel) return; const o = sel, cs = colorsFor(o);
     tbar = document.createElement("div"); tbar.className = "bo-bar"; tbar.onpointerdown = e => e.stopPropagation();
-    tbar.innerHTML = `${cs ? cs[0].map(c => `<button class="bc ${o[cs[1]] === c ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe"></button>`).join("") + "<i></i>" : ""}${o.type === "shape" ? SHAPE_KINDS.map(([k, n]) => `<button class="bk ${(o.kind || "rect") === k ? "on" : ""}" data-k="${k}" title="${n}"><b class="sk-${k}"></b></button>`).join("") + "<i></i>" : ""}<button data-a="front" title="Nach vorn">${ic("up")}</button><button data-a="dup" title="Duplizieren">${ic("copy")}</button><button data-a="del" title="Löschen (Entf)">${ic("trash")}</button>`;
+    tbar.innerHTML = `${cs ? cs[0].map(c => `<button class="bc ${o[cs[1]] === c ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe"></button>`).join("") + "<i></i>" : ""}${o.type === "shape" ? SHAPE_KINDS.map(([k, n]) => `<button class="bk ${(o.kind || "rect") === k ? "on" : ""}" data-k="${k}" title="${n}"><b class="sk-${k}"></b></button>`).join("") + "<i></i>" : ""}<button data-a="sm" title="Kleiner" class="bz">−</button><button data-a="lg" title="Größer" class="bz">+</button><i></i><button data-a="front" title="Nach vorn">${ic("up")}</button><button data-a="dup" title="Duplizieren">${ic("copy")}</button><button data-a="del" title="Löschen (Entf)">${ic("trash")}</button>`;
     host.appendChild(tbar);
     $$("[data-c]", tbar).forEach(b => b.onclick = () => { snap(); o[cs[1]] = b.dataset.c; refresh(o); showBar(); touch(); });
     $$("[data-k]", tbar).forEach(b => b.onclick = () => { snap(); o.kind = b.dataset.k; refresh(o); showBar(); touch(); });
+    const scl = k => { snap(); const mn = o.type === "sticker" ? 24 : o.type === "pin" ? 24 : 40, w0 = o.w, h0 = o.h; o.w = Math.max(mn, Math.round(o.w * k)); o.h = o.type === "sticker" ? Math.round(o.w * (o.ar || 1)) : Math.max(mn, Math.round(o.h * k)); if (o.type === "label") o.fs = Math.max(12, Math.round((o.fs || 44) * k)); o.x += Math.round((w0 - o.w) / 2); o.y += Math.round((h0 - o.h) / 2); style(o, elOf(o)); placeBar(); touch(); };
+    $("[data-a=sm]", tbar).onclick = () => scl(.8); $("[data-a=lg]", tbar).onclick = () => scl(1.25);
     $("[data-a=front]", tbar).onclick = () => { snap(); o.z = Math.max(0, ...st.objs.map(x => x.z || 0)) + 1; style(o, elOf(o)); touch(); };
     $("[data-a=dup]", tbar).onclick = () => { snap(); const c = { ...JSON.parse(JSON.stringify(o)), id: uid(), x: o.x + 30, y: o.y + 30, z: (o.z || 0) + 1 }; st.objs.push(c); mount(c); select(c); touch(); };
     $("[data-a=del]", tbar).onclick = () => del(o); placeBar();
@@ -101,7 +103,7 @@ function boardObjects(X) {
   });
   addEventListener("pointermove", e => {
     if (!drag) return; const dx = (e.clientX - drag.sx) / cam.z, dy = (e.clientY - drag.sy) / cam.z; if (!drag.moved && Math.hypot(dx, dy) * cam.z < 3) return; if (!drag.moved) { snap(); drag.moved = true; }
-    const o = drag.o; if (drag.rs) { o.w = Math.max(o.type === "sticker" ? 40 : 80, Math.round(drag.ow + dx)); o.h = o.type === "sticker" ? Math.round(o.w * (o.ar || 1)) : Math.max(o.type === "label" ? 40 : 60, Math.round(drag.oh + dy)); } else { o.x = Math.round(drag.ox + dx); o.y = Math.round(drag.oy + dy); } style(o, drag.el); placeBar();
+    const o = drag.o; if (drag.rs) { o.w = Math.max(o.type === "sticker" ? 24 : 80, Math.round(drag.ow + dx)); o.h = o.type === "sticker" ? Math.round(o.w * (o.ar || 1)) : Math.max(o.type === "label" ? 40 : 60, Math.round(drag.oh + dy)); } else { o.x = Math.round(drag.ox + dx); o.y = Math.round(drag.oy + dy); } style(o, drag.el); placeBar();
   });
   const end = () => { if (drag?.moved) touch(); drag = null; }; addEventListener("pointerup", end); addEventListener("pointercancel", end);
   host.addEventListener("pointerdown", e => { if (!e.target.closest(".bo") && !e.target.closest(".bo-bar")) { if (document.activeElement?.isContentEditable) document.activeElement.blur(); select(null); } }, true);
