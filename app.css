@@ -2102,8 +2102,9 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .co-curs{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}
 .co-cur{position:absolute;left:0;top:0;transition:transform .12s linear,opacity .3s;will-change:transform}
 .co-cur.off{opacity:0}
-.co-cur svg{width:18px;height:22px;fill:var(--c);stroke:#fff;stroke-width:1.6;stroke-linejoin:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
-.co-cur span{position:absolute;left:14px;top:16px;background:var(--c);color:#fff;font:700 11.5px/1 inherit;font-family:inherit;padding:4px 8px;border-radius:999px 999px 999px 4px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.co-cur{color:var(--c);filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
+.co-cur svg{display:block;width:20px;height:24px;fill:var(--c);stroke:none}
+.co-cur span{position:absolute;left:16px;top:18px;background:var(--c);color:#fff;font-size:12px;font-weight:700;line-height:normal;font-family:inherit;padding:3px 9px;border-radius:8px 8px 8px 2px;white-space:nowrap}
 .co-cur{left:50%!important}
 
 /* ======== v82: Dokumente – rechte Spalte (Zuletzt genutzt / Geteilt) ======== */
