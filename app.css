@@ -4856,3 +4856,8 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 #prop .pp-sec{display:contents!important}
 .bd2 #prop .pp-cols,.bd2 #prop .pp-steps{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center;width:auto!important;flex:none}
 .bd2 #prop .pp-sep{display:block;flex:none}
+/* Ordner-Baum: Linien pixelgenau – überall gleiche, ganzzahlige Breite, dieselbe x-Position */
+.nav-f .tl-v{width:2px;border:0;background:#cfcfd5;left:auto}
+.nav-f .tl-e{width:17px;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px;box-sizing:border-box}
+.nav-f .tl-e:not(.end){border-bottom:0;border-radius:0}
+.nav-f .tl-e:not(.end)::before{left:-2px;width:17px;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px;box-sizing:border-box}
