@@ -4775,3 +4775,8 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .el-grid.st .pv-box{border-radius:8px}
 .pv-box .bo-sticker,.pv-box .bo-img{filter:none!important}
 .pv-box .bo-stc{filter:none!important}
+
+/* Whiteboard-Leiste: alle Boxen gleich gross (38 px, Radius 11) · Studix-Logo-Button eckig-abgerundet */
+.bd2 .bd-bar .bd-ib,.bd2 .bd-bar .bd-ai2{width:38px;height:38px;border-radius:11px}
+.bd2 .bd-bar .bd-ai2{background:var(--soft);margin-right:0}.bd2 .bd-bar .bd-ai2:hover{background:#ecebf4}
+.bd2 .bd-ailogo{display:block;width:22px;height:22px;background:url(logo.svg) center/contain no-repeat}
