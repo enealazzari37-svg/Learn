@@ -4861,3 +4861,11 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .nav-f .tl-e{width:17px;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px;box-sizing:border-box}
 .nav-f .tl-e:not(.end){border-bottom:0;border-radius:0}
 .nav-f .tl-e:not(.end)::before{left:-2px;width:17px;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px;box-sizing:border-box}
+
+/* Leerer Ordner: alle Funktionen direkt zum Antippen */
+.emp2{max-width:720px;margin:40px auto;text-align:center}.emp2 h3{margin:0 0 6px}.emp2>p{margin:0 0 22px;color:#8a8a98}
+.emp-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:left}
+.emp-c{display:flex;align-items:center;gap:11px;padding:10px;border-radius:14px;background:transparent;text-align:left;min-width:0;transition:background .12s}.emp-c:hover{background:var(--soft)}
+.emp-i{width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--c) 13%,#fff);color:var(--c);display:grid;place-items:center;flex:none}.emp-i svg{width:19px;height:19px}
+.emp-c b{display:block;font-size:14px;font-weight:600;color:#111}.emp-c small{display:block;font-size:12px;color:#8a8a98;margin-top:1px;line-height:1.3}
+@media (max-width:900px){.emp-g{grid-template-columns:repeat(2,1fr)}}
