@@ -4940,3 +4940,16 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .kb-e{margin:8px 4px;font-size:12px;color:#a0a0ae;text-align:center}
 .kb-k .kc-more{width:22px;height:22px}
 @media (max-width:700px){.kb{grid-template-columns:repeat(3,minmax(150px,1fr));overflow-x:auto}}
+
+/* Workspace: Umschalter Dashboard / Dokumente, kompakteres Hub-Raster ohne Lücken */
+.ws-sw{display:inline-flex;gap:3px;padding:3px;background:var(--soft);border-radius:12px;margin:0 0 14px}
+.ws-sw button{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 15px;border-radius:9px;font-size:13.5px;font-weight:600;color:#666}.ws-sw button svg{width:16px;height:16px}
+.ws-sw button.on{background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.dmain[data-tab=dash]>:not(.ws-sw):not(#ws-hub){display:none!important}.dmain[data-tab=docs] #ws-hub{display:none}
+.hub{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 10px;align-items:stretch}
+.hub>.hc{grid-column:auto!important;grid-row:auto!important}
+.hub>.hc-ch{grid-column:span 2!important}
+.hc{padding:14px}
+.hch-l{max-height:190px;min-height:120px}
+.ha-bars{min-height:56px}
+@media (max-width:900px){.hub{grid-template-columns:1fr}.hub>.hc-ch{grid-column:auto!important}}
