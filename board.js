@@ -178,13 +178,23 @@ V.draw = async (m, id) => {
   $("#exp", m).onclick = () => { snapshot(4000).toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (d.title || "zeichnung") + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }); };
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Skizze erklären lassen", icon: "help", fn: async () => explainCanvas("Erkläre, was auf dieser Skizze/Tafel zu sehen ist. Wenn es Mathematik oder Naturwissenschaft ist, erkläre die Idee und Rechenschritte und weise auf mögliche Fehler hin.") }, { label: "Handschrift in Text umwandeln", icon: "text", fn: async () => explainCanvas("Lies die Handschrift/Beschriftungen auf dem Bild und gib sie als sauberen Text wieder (Formeln in Textform).") }, { label: "Als Notiz speichern (Bild)", icon: "note", fn: () => newNote(d.subjectId, `<p><img src="${snapshot(1600).toDataURL("image/jpeg", .8)}"></p><p><br></p>`, d.title) }]);
   function shareBoard() {
-    const { el, close } = modal(`<div class="dh"><span class="di" style="--c:#5b3df5">${ic("user")}</span><div><h3>Whiteboard teilen</h3><p class="note">Gib dein Board weiter oder sichere es.</p></div></div>
-    <div class="sh-ppl"><span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span><div><b>${esc(coName())}</b><small>Du · Inhaber:in</small></div></div>
-    <div class="sh-act"><button class="btn ghost" id="sh-png">${ic("download")}Als Bild herunterladen (PNG)</button><button class="btn ghost" id="sh-cp">${ic("copy")}Bild kopieren</button><button class="btn ghost" id="sh-nt">${ic("note")}Als Notiz speichern</button></div>
-    <p class="note sh-n">Live gemeinsam zeichnen wie in Notizen und Dokumenten ist für Whiteboards noch nicht verfügbar.</p>`, "sheet");
-    $("#sh-png", el).onclick = () => { close(); $("#exp", m).click(); };
-    $("#sh-cp", el).onclick = () => snapshot(2400).toBlob(async b => { try { await navigator.clipboard.write([new ClipboardItem({ "image/png": b })]); toast("Bild kopiert"); close(); } catch { toast("Kopieren wird von diesem Browser nicht unterstützt"); } });
-    $("#sh-nt", el).onclick = () => { close(); newNote(d.subjectId, `<p><img src="${snapshot(1600).toDataURL("image/jpeg", .8)}"></p><p><br></p>`, d.title); };
+    const old = $("#shpop", m); if (old) { old.remove(); return; }
+    const stage = $(".bd-stage", m), anc = $("#cob", m).getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    const pop = document.createElement("div"); pop.className = "bd-pop bd-share"; pop.id = "shpop";
+    const row = (id, i, t, s2) => `<button class="sp-r" id="${id}"><span class="sp-i">${ic(i)}</span><span><b>${t}</b><small>${s2}</small></span></button>`;
+    pop.innerHTML = `<div class="sp-me"><span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span><b>${esc(coName())}</b><em>Inhaber:in</em></div>
+    <p class="sp-h">Exportieren</p>${row("sh-png", "download", "Als PNG", "Hohe Auflösung, transparent-frei")}${row("sh-jpg", "image", "Als JPG", "Klein und schnell zu verschicken")}${row("sh-cp", "copy", "Bild kopieren", "In Chat oder Dokument einfügen")}${row("sh-pr", "file", "Drucken / PDF", "Über den Druckdialog")}
+    <p class="sp-h">Weiterverwenden</p>${row("sh-nt", "note", "Als Notiz speichern", "Board als Bild in ein neues Dokument")}${row("sh-dp", "copy", "Duplizieren", "Kopie dieses Whiteboards anlegen")}`;
+    stage.appendChild(pop); pop.style.top = anc.bottom - sr.top + 8 + "px"; pop.style.left = Math.max(8, Math.min(sr.width - 308, anc.right - sr.left - 300)) + "px";
+    const close = () => { pop.remove(); document.removeEventListener("pointerdown", off, true); }, off = e => { if (!pop.contains(e.target) && !e.target.closest("#cob, #mo-m")) close(); };
+    setTimeout(() => document.addEventListener("pointerdown", off, true)); LEAVE.push(close);
+    const blob = (type, q, f) => snapshot(f).toBlob(b => b && go2(b), type, q), go2 = b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (d.title || "zeichnung") + (b.type === "image/jpeg" ? ".jpg" : ".png"); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); };
+    $("#sh-png", pop).onclick = () => { close(); $("#exp", m).click(); };
+    $("#sh-jpg", pop).onclick = () => { close(); blob("image/jpeg", .92, 3000); };
+    $("#sh-cp", pop).onclick = () => snapshot(2400).toBlob(async b => { try { await navigator.clipboard.write([new ClipboardItem({ "image/png": b })]); toast("Bild kopiert"); close(); } catch { toast("Kopieren wird von diesem Browser nicht unterstützt"); } });
+    $("#sh-pr", pop).onclick = () => { close(); const u = snapshot(2400).toDataURL("image/png"), w = window.open("", "_blank"); if (!w) return toast("Pop-up wurde blockiert"); w.document.write(`<title>${esc(d.title || "Whiteboard")}</title><style>@page{margin:10mm}body{margin:0}img{width:100%}</style><img src="${u}" onload="print()">`); w.document.close(); };
+    $("#sh-nt", pop).onclick = () => { close(); newNote(d.subjectId, `<p><img src="${snapshot(1600).toDataURL("image/jpeg", .8)}"></p><p><br></p>`, d.title); };
+    $("#sh-dp", pop).onclick = () => { close(); duplicate(); };
   }
   async function explainCanvas(q) { if (!hasKey()) return toast("Bild-Analyse braucht die eingerichtete Studix AI (Einstellungen → Studix AI)."); if (!st.strokes.length && !st.objs.length) return toast("Zeichne zuerst etwas."); toast("Studix AI schaut hin…"); const t = snapshot(1400); const r = await ai(q, { image: { data: t.toDataURL("image/jpeg", .85).split(",")[1], type: "image/jpeg" } }); if (r) { const { el } = modal(`<h3>Studix AI</h3><textarea class="field" rows="12">${esc(r)}</textarea><div class="row end"><button class="btn" id="sn">Als Notiz speichern</button></div>`, "wide"); $("#sn", el).onclick = () => { el.closest(".mask").remove(); newNote(d.subjectId, textToHtml(r), d.title + " – Studix AI"); }; } }
   const key = e => {

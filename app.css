@@ -4780,3 +4780,11 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .bd2 .bd-bar .bd-ib,.bd2 .bd-bar .bd-ai2{width:38px;height:38px;border-radius:11px}
 .bd2 .bd-bar .bd-ai2{background:var(--soft);margin-right:0}.bd2 .bd-bar .bd-ai2:hover{background:#ecebf4}
 .bd2 .bd-ailogo{display:block;width:22px;height:22px;background:url(logo.svg) center/contain no-repeat}
+
+/* Teilen-Popover: klein, direkt unter dem Button, ohne Abdunkeln/Blur */
+.bd2 .bd-share{width:300px;padding:10px;border-radius:14px}
+.bd2 .sp-me{display:flex;align-items:center;gap:10px;padding:4px 6px 10px;border-bottom:1px solid #eeeef3;margin-bottom:6px}.bd2 .sp-me b{font-size:14px;font-weight:600}.bd2 .sp-me em{margin-left:auto;font-style:normal;font-size:12px;color:#8a8a98}
+.bd2 .sp-h{margin:8px 6px 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8a8a98;font-weight:600}
+.bd2 .sp-r{display:flex;align-items:center;gap:11px;width:100%;padding:7px 6px;border-radius:10px;text-align:left}.bd2 .sp-r:hover{background:var(--soft)}
+.bd2 .sp-i{width:32px;height:32px;border-radius:9px;background:var(--soft);display:grid;place-items:center;flex:none;color:#3f3f4a}.bd2 .sp-i svg{width:17px;height:17px}
+.bd2 .sp-r b{display:block;font-size:13.5px;font-weight:600}.bd2 .sp-r small{display:block;font-size:12px;color:#8a8a98;margin-top:1px}
