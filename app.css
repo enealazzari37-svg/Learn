@@ -5018,3 +5018,8 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .ta-up::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-left:4px solid #19a39a;border-top:4px solid #19a39a;transform:rotate(45deg) translate(2px,2px)}
 .ta-cd b{width:46px;height:30px;border-radius:5px}.ta-cd b:nth-child(1){left:6px;top:8px;background:#ffc58a;transform:rotate(-8deg)}.ta-cd b:nth-child(2){left:20px;top:22px;background:#ff9d5c;transform:rotate(5deg)}
 .ta-ai{background:linear-gradient(135deg,#8b6cff,#d57cff)!important}.ta-ai::after{content:"✦";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:24px}
+/* Vorlagen-Kacheln: Hover wird nicht mehr abgeschnitten, weiche Bewegung */
+.tpl-row{padding:8px 6px 18px;margin:-6px -6px 4px}
+.tpl{transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s cubic-bezier(.2,.8,.2,1)}
+.tpl-a{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.tpl:hover .tpl-a{transform:translateY(-50%) rotate(4deg) scale(1.04)}
