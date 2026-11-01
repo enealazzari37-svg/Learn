@@ -716,7 +716,15 @@ window.LPL_APP = {
     "Du nutzt Studix AI richtig viel": "You're using Studix AI a lot", "Dein kostenloses Studix-AI-Limit ist aufgebraucht. Mit Essential oder Pro bekommst du deutlich mehr.": "Your free Studix AI allowance is used up. With Essential or Pro you get much more.",
     "Alles bereit": "All set",
   },
+  EN4: {
+    "Code wird geprüft …": "Checking code …", "Code konnte nicht geprüft werden.": "Code couldn't be checked.", "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben.": "✓ Valid – you both get 1 month of Pro and credit.", "✓ Gültig.": "✓ Valid.",
+    "Der Code ist noch zu kurz.": "The code is still too short.", "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.": "✗ This code has already been redeemed as often as it's valid.", "✗ Dieser Einladungscode ist nicht mehr aktiv.": "✗ This invitation code is no longer active.", "✗ Dieser Code ist ungültig.": "✗ This code is invalid.",
+    "Abo: Gratis": "Plan: Free", "Gratis-Plan": "Free plan", "Pläne ansehen": "View plans", "Dein geschenktes Pro ist abgelaufen.": "Your gifted Pro has expired.",
+    "Danach gilt wieder dein Gratis-Plan. Du kannst jetzt schon einen Plan wählen – er startet sofort.": "After that your Free plan applies again. You can already choose a plan now – it starts immediately.",
+  },
   RX: [
+    ["^✓ Gültig – (\\d+) Monate Pro geschenkt\\.$", "✓ Valid – $1 months of Pro as a gift."], ["^Abo: Pro geschenkt · bis (.+)$", "Plan: Pro (gift) · until $1"], ["^Pro geschenkt – gültig bis (.+)$", "Pro gifted – valid until $1"], ["^Pro geschenkt bis (.+)$", "Pro gifted until $1"],
+    ["^Abo: (Essential|Pro) · aktiv, verlängert am (.+?)( · Pro geschenkt bis (.+))?$", "Plan: $1 · active, renews on $2"], ["^Abo: (Essential|Pro) · gekündigt, Zugang bis (.+)$", "Plan: $1 · cancelled, access until $2"], ["^Abo: (Essential|Pro) · Testversion endet in (.+)$", "Plan: $1 · trial ends in $2"],
     ["^(\\d+) Tage in Folge – starke Serie! 🔥$", "$1 days in a row – great streak! 🔥"], ["^eingeladen · noch (\\d+) möglich$", "invited · $1 left"], ["^eingeladen · noch (\\d+) möglich · Guthaben (.+) wird bei der nächsten Zahlung verrechnet$", "invited · $1 left · credit of $2 will be applied to your next payment"],
     ["^Dein Guthaben von (.+) wird bei deiner ersten Zahlung verrechnet\\.$", "Your credit of $1 will be applied to your first payment."], ["^(.+) Guthaben auf die nächste Zahlung$", "$1 credit on your next payment"],
     ["^(\\d+) Dateien?$", "$1 file(s)"], ["^(\\d+) fällig$", "$1 due"], ["^(.+) · vor (\\d+) Std\\.$", "$1 · $2 hr ago"], ["^(.+) · vor (\\d+) Tagen?$", "$1 · $2 days ago"], ["^(.+) · gestern$", "$1 · yesterday"],
@@ -743,3 +751,10 @@ window.LPL_APP = {
   }));
   Object.keys(WD).forEach(w => { E[w] = WD[w]; });
 })();
+/* Deutsche Daten („26. November 2026“) in übersetzten Texten → „November 26, 2026“ */
+window.LPL_APP.dateEn = (() => {
+  const M = { Januar: "January", Februar: "February", März: "March", April: "April", Mai: "May", Juni: "June", Juli: "July", August: "August", September: "September", Oktober: "October", November: "November", Dezember: "December" }, re = new RegExp("(\\d{1,2})\\. (" + Object.keys(M).join("|") + ") (\\d{4})", "g");
+  return s => s.replace(re, (_, d, m, y) => `${M[m]} ${+d}, ${y}`);
+})();
+window.LPL_APP.RX.push(["^Aktiv · verlängert sich am (.+)$", "Active · renews on $1"], ["^Gekündigt – Zugang bis (.+)$", "Cancelled – access until $1"], ["^Testversion endet in (.+) \\(am (.+)\\)$", "Trial ends in $1 (on $2)"], ["^Aktiv$", "Active"]);
+

@@ -36,12 +36,31 @@ async function refRedeem(res, user, code) {
     return res.status(200).json({ ok: true, referral: true, until: mine, credit_cents: 200 });
   } catch (e) { return res.status(noSql(e) ? 503 : 502).json({ error: noSql(e) ? "Einladungen sind noch nicht eingerichtet." : e.message }); }
 }
+
+/* Ist der Code gültig? Löst nichts ein. → { valid: true|false, kind: "referral"|"gift"|"access"|"limited", months?, reason? } */
+async function checkCode(res, code) {
+  await new Promise(r => setTimeout(r, 400));   // bremst Durchprobieren
+  if (code.length < 6) return res.status(200).json({ valid: false, reason: "short" });
+  const hit = C.match(code); if (hit) return res.status(200).json({ valid: true, kind: "gift", months: hit.months });
+  if (crypto.timingSafeEqual(C.sha(code), WANT())) return res.status(200).json({ valid: true, kind: "access" });
+  if (!L.SB_SERVICE()) return res.status(200).json({ valid: false, reason: "invalid" });
+  try {
+    const hex = C.sha(code).toString("hex"), rows = await L.sb("GET", `lumi_access_codes?code_hash=eq.${hex}&select=max_uses`);
+    if (rows && rows[0]) { const used = await L.sb("GET", `lumi_access_redemptions?code_hash=eq.${hex}&select=user_id`); return res.status(200).json(used.length < rows[0].max_uses ? { valid: true, kind: "limited" } : { valid: false, reason: "used_up" }); }
+  } catch {}
+  if (/^[A-Z0-9]{8}$/.test(code)) {
+    try { const owner = await L.sb("POST", "rpc/lumi_ref_owner", { p_code: code }); if (owner) return res.status(200).json((await L.canInvite(owner)) ? { valid: true, kind: "referral" } : { valid: false, reason: "inactive" }); } catch {}
+  }
+  return res.status(200).json({ valid: false, reason: "invalid" });
+}
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!L.sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   try {
-    const b = await L.readJson(req), user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
+    const b = await L.readJson(req);
+    if (b.action === "check") return checkCode(res, C.norm(b.code));   // Code prüfen, ohne ihn einzulösen (auch vor der Anmeldung, z. B. beim Registrieren)
+    const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
     const key = L.SB_SERVICE(); if (!key) return res.status(503).json({ error: "SUPABASE_SERVICE_ROLE_KEY fehlt in Vercel." });
     const meta = async () => { const r = await fetch(adminUrl(user.id), { headers: adminHeaders(key) }); return r.ok ? (await r.json()).app_metadata || {} : {}; };
     if (b.action === "status") return res.status(200).json({ access: !!(await meta()).access });

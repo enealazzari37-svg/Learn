@@ -73,7 +73,8 @@ const plusManage = async flow => { const done = busy(flow === "cancel" ? "Kündi
 const daysLeft = d => Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 864e5));
 const dLabel = n => n === 1 ? "1 Tag" : n + " Tage";
 const dIn = n => n === 1 ? "1 Tag" : n + " Tagen";
-const isTrial = () => isPlus() && BILL.row.status === "trialing";
+const isGift = () => isPlus() && !!BILL.row.grant;   // Pro geschenkt (Einladung / Early Backer): keine Testversion, kein Abo bei Stripe
+const isTrial = () => isPlus() && BILL.row.status === "trialing" && !BILL.row.grant;
 const isEss = () => isPlus() && BILL.row.tier === "essential";   // Studix Essential (günstiger, halbes KI-Budget)
 const isPro = () => isPlus() && !isEss();
 /* Workspace und Live-Zusammenarbeit (gemeinsam Dateien bearbeiten): nur mit Essential oder Pro – solange man ein Abo überhaupt kaufen kann */
@@ -158,16 +159,16 @@ function plusPanelCore() {
   const eligible = !r, trialD = (c && c.trial) || 14;
   const E = isEss(), head = state => `<div class="prohead"><div><span class="probadge">${E ? "Essential" : "Pro"}</span><h2>${E ? "Studix Essential" : "Studix Study Pro"}</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
   if (CLOUD.user && c && c.enabled && !BILL.loaded) return `<div class="panel propanel">${head("")}<p class="note">Abo wird bei Stripe geladen …</p></div>`;
-  const cancelling = isPlus() && r.cancel_at_period_end;
-  if (c && c.pk && c.monthly && c.enabled && cloudOn() && CLOUD.user && (!isPlus() || cancelling)) {   // Plan-Auswahl links, Bezahlformular rechts
+  const gift = isGift(), cancelling = isPlus() && r.cancel_at_period_end && !gift;
+  if (c && c.pk && c.monthly && c.enabled && cloudOn() && CLOUD.user && (!isPlus() || cancelling || gift)) {   // Plan-Auswahl links, Bezahlformular rechts
     const m = c.monthly, y = c.yearly, off = cancelling, def = r ? "monthly" : "trial", cur = off ? "" : (window.__plan && !(window.__plan === "trial" && r) ? window.__plan : def), save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0, esave = c.essential && c.essentialYearly ? Math.max(0, c.essential * 12 - c.essentialYearly) : 0, epct = esave ? Math.round(esave / (c.essential * 12) * 100) : 0;
     const P = [!r ? ["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"] : null,
       c.essential ? ["essential", "Essential monatlich", `Halb so viel Studix AI wie Pro (${aiuNum(AIQ.ess)} Token pro Woche), ohne Bild-Analyse und Sprache.`, `${money(c.essential)} / Monat`] : null,
       c.essential && c.essentialYearly ? ["essentialYearly", "Essential jährlich", esave > 0 ? `Du sparst ${epct} % – nur ${money(Math.round(c.essentialYearly / 12))} pro Monat.` : "Ein Jahr Studix Essential.", `${money(c.essentialYearly)} / Jahr`] : null,
       ["monthly", c.essential ? "Pro monatlich" : "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", c.essential ? "Pro jährlich" : "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Studix Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
     const days = cancelling ? daysLeft(r.current_period_end) : 0;
-    const top = cancelling ? `<div class="pp-run"><b>Aktives Abo läuft in ${dIn(days)} ab</b><small>Zugang bis ${dateDE(r.current_period_end)}. Danach kannst du hier ein neues Abo abschliessen.</small><button class="btn" type="button" id="pl-resume">Abo wieder aktivieren</button></div>`
-      : r ? `<p class="pp-ended">Dein letztes Abo ist beendet${r.ended_at || r.current_period_end ? ` (${dateDE(r.ended_at || r.current_period_end)})` : ""}. Schön, dass du zurück bist.</p>` : "";
+    const top = gift ? `<div class="pp-run"><b>Pro geschenkt bis ${dateDE(r.current_period_end)}</b><small>Danach gilt wieder dein Gratis-Plan. Du kannst jetzt schon einen Plan wählen – er startet sofort.</small></div>` : cancelling ? `<div class="pp-run"><b>Aktives Abo läuft in ${dIn(days)} ab</b><small>Zugang bis ${dateDE(r.current_period_end)}. Danach kannst du hier ein neues Abo abschliessen.</small><button class="btn" type="button" id="pl-resume">Abo wieder aktivieren</button></div>`
+      : r ? (r.grant ? `<p class="pp-ended">Dein geschenktes Pro ist abgelaufen.</p>` : `<p class="pp-ended">Dein letztes Abo ist beendet${r.ended_at || r.current_period_end ? ` (${dateDE(r.ended_at || r.current_period_end)})` : ""}. Schön, dass du zurück bist.</p>`) : "";
     return `<div class="propanel proside${off ? " is-off" : ""}"><span class="probadge">Pro</span><h2>Studix Study Pro</h2>${top}<p class="ps-lead">${off ? "Neue Pläne sind erst nach Ablauf wählbar." : c.essential ? "Essential für den Einstieg, Pro mit allem. Mehrwertsteuer ist immer inklusive." : "Wähle deinen Plan. Mehrwertsteuer ist immer inklusive."}</p>
       <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" ${off ? "disabled" : ""} style="--d:${i}">${k === "trial" ? `<span class="pp-gift">${ic("gift")}</span>` : `<i class="pp-dot"></i>`}<span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : k === "essentialYearly" && epct ? `<em>−${epct} %</em>` : ""}</button>`).join("")}</div>
       <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
@@ -231,17 +232,17 @@ function proBannerHtml() {
   const c = BILL.cfg, r = BILL.row, can = c && c.enabled && cloudOn();
   const td = (c && c.trial) || 14, price = can ? (c.monthly && c.essential ? `Essential ${money(c.essential)} · Pro ${money(c.monthly)} / Monat` : c.monthly ? `${money(c.monthly)} / Monat` : c.yearly ? `${money(c.yearly)} / Jahr` : "") : "";
   const t = (CLOUD.user && can && !BILL.loaded) ? "Abo wird geladen …" : isPlus()
-    ? (r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}`
+    ? (isGift() ? `Pro geschenkt – gültig bis ${dateDE(r.current_period_end)}` : r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}`
       : r.status === "trialing" ? `Testversion endet in ${dIn(daysLeft(r.current_period_end))} (am ${dateDE(r.current_period_end)})`
       : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv")
     : can && price ? `${r ? "" : td + " Tage gratis, danach "}${price}` : `Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche – bald verfügbar`;
-  return `<div class="probanner"><div class="pb-l"><span class="probadge">${isEss() ? "Essential" : "Pro"}</span><div><b>${isEss() ? "Studix Essential" : "Studix Study Pro"}</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? (isTrial() ? "Testversion verwalten" : "Abo verwalten") : can ? (r ? "Studix Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
+  return `<div class="probanner"><div class="pb-l"><span class="probadge">${isEss() ? "Essential" : isPlus() ? "Pro" : "Gratis"}</span><div><b>${isEss() ? "Studix Essential" : isPlus() ? "Studix Study Pro" : "Gratis-Plan"}</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isGift() ? "Pläne ansehen" : isPlus() ? (isTrial() ? "Testversion verwalten" : "Abo verwalten") : can ? (r ? "Studix Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
 }
 
 /* Chip in der Seitenleiste: Testphase bzw. Kündigung immer sichtbar */
 function proChipHtml() {   // nur Text, kein Knopf; wird bei eingeklappter Seitenleiste ausgeblendet
   if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
-  const txt = r.cancel_at_period_end ? `Gekündigt – Zugang bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : "";
+  const txt = r.cancel_at_period_end && !r.grant ? `Gekündigt – Zugang bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : "";
   return txt ? `<div class="prostatus nl hide-mob" id="prochip">${txt}</div>` : "";
 }
 
@@ -268,9 +269,12 @@ const priceHint = cc => { const c = BILL.cfg; if (!c || !c.enabled || !c.opts) r
 
 /* Pro-Banner beim Namen: Abzeichen + Status-Pille */
 const proBadgeHtml = () => (BILL.row?.badge === "early_backer" ? `<span class="probadge early nm" title="Exklusives Abzeichen für die ersten Unterstützer">Early Backer</span>` : "") + (isPlus() ? `<span class="probadge nm">${isEss() ? "Essential" : "Pro"}</span>` : "");
-function proPillHtml() {
-  if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
-  return `<span class="trialpill ${r.cancel_at_period_end ? "end" : ""}">${r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : `${isEss() ? "Essential" : "Pro"} aktiv · verlängert am ${dateDE(r.current_period_end)}`}</span>`;
+function proPillHtml() {   // „Abo: …“ unter dem Namen im Profil – immer sichtbar
+  const r = BILL.row;
+  if (!isPlus()) return `<span class="trialpill free">Abo: Gratis</span>`;
+  const n = daysLeft(r.current_period_end), name = isEss() ? "Essential" : "Pro", gu = r.gift_until && !r.grant ? ` · Pro geschenkt bis ${dateDE(r.gift_until)}` : "";
+  if (r.grant) return `<span class="trialpill">Abo: Pro geschenkt · bis ${dateDE(r.current_period_end)}</span>`;
+  return `<span class="trialpill ${r.cancel_at_period_end ? "end" : ""}">${r.cancel_at_period_end ? `Abo: ${name} · gekündigt, Zugang bis ${dateDE(r.current_period_end)}` : r.status === "trialing" ? `Abo: ${name} · Testversion endet in ${dIn(n)}` : `Abo: ${name} · aktiv, verlängert am ${dateDE(r.current_period_end)}`}${gu}</span>`;
 }
 
 

@@ -203,7 +203,7 @@ function authScreen(mode = "in") {
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
-        ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" value="${esc(pendingRef())}" style="letter-spacing:.12em;text-transform:uppercase"></div><p class="note" style="margin:6px 2px 0">Von einem Freund eingeladen? Ihr bekommt beide 1 Monat Pro und Guthaben.</p>` : ""}
+        ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" value="${esc(pendingRef())}" style="letter-spacing:.12em;text-transform:uppercase"></div><p class="note rc-m" id="cl-rcm" aria-live="polite" style="margin:6px 2px 0">Von einem Freund eingeladen? Ihr bekommt beide 1 Monat Pro und Guthaben.</p>` : ""}
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? `<svg width="18" height="18" viewBox="0 0 48 48" style="margin-right:10px"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 019.5 24c0-1.6.3-3.2.9-4.7l-7.8-6.1A24 24 0 000 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Mit Google fortfahren` : "Mit Apple fortfahren"}</button>`).join("")}</div>` : ""}
@@ -216,6 +216,22 @@ function authScreen(mode = "in") {
   authHeroMount($(".authhero", app));
   const f = $(".authform", app); cloudAuthBind(f, () => {});
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
+  const rc = $("#cl-rc", f), rm = $("#cl-rcm", f);   // Code live prüfen: gültig oder nicht
+  if (rc && rm) {
+    const hint = rm.textContent; let tm = 0, seq = 0;
+    const show = (cls, t) => { rm.className = "note rc-m " + cls; rm.textContent = t; };
+    const check = async () => {
+      const v = rc.value.trim(), my = ++seq; if (!v) { rm.className = "note rc-m"; rm.textContent = hint; LPL.sync(); return; }
+      show("load", "Code wird geprüft …");
+      try {
+        const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", code: v }) }), j = await r.json().catch(() => ({})); if (my !== seq) return;
+        if (!r.ok) return show("err", "Code konnte nicht geprüft werden.");
+        if (j.valid) show("ok", j.kind === "referral" ? "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben." : j.kind === "gift" ? `✓ Gültig – ${j.months} Monate Pro geschenkt.` : "✓ Gültig.");
+        else show("err", { short: "Der Code ist noch zu kurz.", used_up: "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.", inactive: "✗ Dieser Einladungscode ist nicht mehr aktiv." }[j.reason] || "✗ Dieser Code ist ungültig.");
+      } catch { if (my === seq) show("err", "Keine Verbindung. Versuche es noch einmal."); }
+    };
+    rc.addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(check, 450); }); if (rc.value.trim()) check();
+  }
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
   $$("[data-o]", f).forEach(b => b.onclick = async () => { const rc = ($("#cl-rc", f)?.value || "").trim(); try { if (rc) localStorage.setItem(RC_KEY, rc); } catch {} const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/" } }); if (error) $("#cl-m", f).textContent = error.message; });
   LPL.sync();
