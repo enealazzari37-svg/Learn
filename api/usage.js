@@ -1,4 +1,4 @@
-/* KI-Verbrauch des Kontos heute (Token). Budget pro Woche: Gratis 25 000, Pro 150 000. */
+/* KI-Verbrauch des Kontos heute (Token). Budget pro Woche: Gratis 12 500, Pro 120 000. */
 const L = require("./_lib");
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");

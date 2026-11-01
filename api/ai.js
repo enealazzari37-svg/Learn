@@ -3,7 +3,7 @@
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
-     AI_FREE_WINDOW_TOKENS (optional: Token pro Woche für Gratis-Konten, Standard 25000 (Studix-Token = echte Token ÷ 10); 0 = unbegrenzt), AI_PRO_WINDOW_TOKENS (Studix Study Pro, Standard 150000) und AI_WINDOW_HOURS (Länge des Fensters, Standard 168 = eine Woche). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
+     AI_FREE_WINDOW_TOKENS (optional: Token pro Woche für Gratis-Konten, Standard 12500 (Studix-Token = echte Token ÷ 10); 0 = unbegrenzt), AI_PRO_WINDOW_TOKENS (Studix Study Pro, Standard 120000) und AI_WINDOW_HOURS (Länge des Fensters, Standard 168 = eine Woche). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
@@ -74,7 +74,7 @@ module.exports = async function handler(req, res) {
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
   let { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
-  /* Token-Budget pro Woche: Gratis 25 000, Studix Study Pro 150 000 (Gratis: eingeschränktes Modell, keine Websuche). Ohne Service-Key oder SQL bleibt alles offen. */
+  /* Token-Budget pro Woche: Gratis 12 500, Studix Study Pro 120 000 (Gratis: eingeschränktes Modell, keine Websuche). Ohne Service-Key oder SQL bleibt alles offen. */
   let acct = null;
   if (L.FREE_TOKENS && !bg) {
     try {

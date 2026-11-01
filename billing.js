@@ -232,7 +232,7 @@ function proPillHtml() {
 }
 
 
-/* ===== KI-Verbrauch (Token pro Woche, Gratis 25 000 / Pro 150 000) – Ring wie der Kontext-Ring bei Claude ===== */
+/* ===== KI-Verbrauch (Token pro Woche, Gratis 12 500 / Pro 120 000) – Ring wie der Kontext-Ring bei Claude ===== */
 const AIU = { on: false, pro: false, tier: "free", unl: false, used: 0, limit: 0, reset: "", hours: 168, s: null, sHours: 5 };
 const aiuNum = n => Math.round(n).toLocaleString("de-CH").replace(/’/g, "’");
 async function aiuLoad() {

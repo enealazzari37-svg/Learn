@@ -28,7 +28,7 @@ Das Abo wird dem Konto über `metadata.user_id` zugeordnet (Stripe-Suche), mit F
 Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in Stripe kann gelöscht werden.
 
 ## Studix Essential (günstiger Tarif)
-Dritte Stufe zwischen Gratis und Pro: **3 CHF pro Monat oder 20 CHF pro Jahr**, halb so viel Studix AI wie Pro (75 000 Token pro Woche, 15 000 pro 5 Std.), unbegrenzt Dokumente und Whiteboards, längere Antworten –
+Dritte Stufe zwischen Gratis und Pro: **3 CHF pro Monat oder 20 CHF pro Jahr**, halb so viel Studix AI wie Pro (60 000 Token pro Woche, 12 000 pro 5 Std.), unbegrenzt Dokumente und Whiteboards, längere Antworten –
 aber **ohne Bild-Analyse und Sprachgespräch** (die bleiben Pro) und ohne Testversion. Wechsel Essential ↔ Pro geht direkt in der App (Einstellungen → Pro), der Preisunterschied wird anteilig abgerechnet.
 
 Einrichtung: In Stripe ein **zweites Produkt „Studix Essential“** mit demselben Produktsteuercode wie Pro anlegen (der Preis wird aus `ESSENTIAL_MONTHLY_CENTS` gebildet, ein Stripe-Preis ist nicht nötig).
@@ -48,10 +48,10 @@ Ohne dieses Produkt bleibt Essential unsichtbar und es gibt nur Gratis und Pro. 
 | `PRO_YEARLY_CENTS` | Jahrespreis von Pro in Rappen/Cent (Standard `4000` = 40). Alternativ `PRO_YEARLY_DISCOUNT` (Rabatt in % auf 12 Monate), dann wird er daraus berechnet |
 | `STRIPE_ESSENTIAL_PRODUCT_ID` | optional, falls das Produkt nicht „Studix Essential“ heißt |
 | `ESSENTIAL_MONTHLY_CENTS` / `ESSENTIAL_YEARLY_CENTS` | Preise von **Studix Essential** in Rappen/Cent, in jeder Währung (Standard `300` = 3 und `2000` = 20 pro Jahr) |
-| `AI_ESSENTIAL_WINDOW_TOKENS` / `AI_ESSENTIAL_SESSION_TOKENS` | KI-Token von Essential pro Woche / pro 5 Std. (Standard `75000` / `15000`, also die Hälfte von Pro) |
+| `AI_ESSENTIAL_WINDOW_TOKENS` / `AI_ESSENTIAL_SESSION_TOKENS` | KI-Token von Essential pro Woche / pro 5 Std. (Standard `60000` / `12000`, also die Hälfte von Pro) |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
-| `AI_FREE_WINDOW_TOKENS` | KI-Token pro Woche für Gratis-Konten (Standard `25000` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |
-| `AI_PRO_WINDOW_TOKENS` | KI-Token pro Woche für Studix Study Pro (Standard `150000`, `0` = unbegrenzt) |
+| `AI_FREE_WINDOW_TOKENS` | KI-Token pro Woche für Gratis-Konten (Standard `12500` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |
+| `AI_PRO_WINDOW_TOKENS` | KI-Token pro Woche für Studix Study Pro (Standard `120000`, `0` = unbegrenzt) |
 | `AI_WINDOW_HOURS` | Länge des Fensters in Stunden (Standard `168` = eine Woche; startet mit der ersten Anfrage); alle drei brauchen `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` |
 
 Prüfen: `https://DEINE-DOMAIN/api/config` muss `"plus":{"enabled":true,…}` mit den drei Währungen unter `opts.monthly` zeigen.

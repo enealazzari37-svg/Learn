@@ -190,17 +190,17 @@ const validCustomer = async id => { if (!id) return null; try { const c = await 
 const dropSubCache = uid => subCache.delete(uid);
 
 /* KI-Budget (Token) pro Zeitfenster: Standard eine Woche (168 Std.), das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
-   AI_FREE_WINDOW_TOKENS = Token pro Woche für Gratis-Konten (Standard 25000), AI_PRO_WINDOW_TOKENS = Token pro Woche für Studix Study Pro (Standard 150000); jeweils 0 = unbegrenzt.
+   AI_FREE_WINDOW_TOKENS = Token pro Woche für Gratis-Konten (Standard 12500), AI_PRO_WINDOW_TOKENS = Token pro Woche für Studix Study Pro (Standard 120000); jeweils 0 = unbegrenzt.
    Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
 const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
-const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 25000), PRO_TOKENS = num(process.env.AI_PRO_WINDOW_TOKENS, 150000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 168)));
+const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 12500), PRO_TOKENS = num(process.env.AI_PRO_WINDOW_TOKENS, 120000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 168)));
 /* Essential: etwa halb so viel wie Pro (AI_ESSENTIAL_WINDOW_TOKENS / AI_ESSENTIAL_SESSION_TOKENS) */
-const ESS_TOKENS = num(process.env.AI_ESSENTIAL_WINDOW_TOKENS, 75000);
+const ESS_TOKENS = num(process.env.AI_ESSENTIAL_WINDOW_TOKENS, 60000);
 const tierName = t => t === true || t === "pro" ? "pro" : t === "essential" ? "essential" : "free";   // true (alt) = Pro
 const limitFor = t => ({ pro: PRO_TOKENS, essential: ESS_TOKENS, free: FREE_TOKENS })[tierName(t)];   // 0 = unbegrenzt
-/* Zusätzlich ein kurzes Fenster (Standard 5 Std.): Gratis 5 000, Pro 30 000 Token */
-const FREE_S = num(process.env.AI_FREE_SESSION_TOKENS, 5000), PRO_S = num(process.env.AI_PRO_SESSION_TOKENS, 30000), SESSION_H = Math.max(1, Math.round(num(process.env.AI_SESSION_HOURS, 5)));
-const ESS_S = num(process.env.AI_ESSENTIAL_SESSION_TOKENS, 15000);
+/* Zusätzlich ein kurzes Fenster (Standard 5 Std.): Gratis 2 500, Pro 24 000 Token */
+const FREE_S = num(process.env.AI_FREE_SESSION_TOKENS, 2500), PRO_S = num(process.env.AI_PRO_SESSION_TOKENS, 24000), SESSION_H = Math.max(1, Math.round(num(process.env.AI_SESSION_HOURS, 5)));
+const ESS_S = num(process.env.AI_ESSENTIAL_SESSION_TOKENS, 12000);
 const limitS = t => ({ pro: PRO_S, essential: ESS_S, free: FREE_S })[tierName(t)];
 const nf = n => Math.round(n).toLocaleString("de-CH");
 const upsell = (t, big, small) => tierName(t) === "pro" ? "." : tierName(t) === "essential" ? ` – oder wechsle zu Studix Study Pro mit ${nf(big[0])} Token statt ${nf(big[1])}.` : ` – oder nutze Studix Essential (${nf(small[0])}) bzw. Study Pro (${nf(big[0])} Token) statt ${nf(small[1])}.`;

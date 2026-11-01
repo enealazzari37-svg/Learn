@@ -371,7 +371,7 @@ const provLogo = prov => prov === "Groq" ? GROQ_SVG : prov === "Gemini" ? GEMINI
 /* ---------- AI ---------- */
 let serverAI = false, serverInfo = null;
 /* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
-const AIQ = { free: 25000, ess: 75000, pro: 150000, freeS: 5000, essS: 15000, proS: 30000, hours: 168 };
+const AIQ = { free: 12500, ess: 60000, pro: 120000, freeS: 2500, essS: 12000, proS: 24000, hours: 168 };
 /* Weitere Gratis-Limits (gelten nur, solange man Pro kaufen kann): Dokumente, Whiteboards. Bild-Analyse und Sprache sind serverseitig nur für Pro. */
 const FREE_LIMITS = { docs: 100, boards: 10 };
 const freePlan = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && !isPlus(); } catch { return false; } };
