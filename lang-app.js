@@ -349,7 +349,7 @@ window.LPL_APP = {
     "So sieht Studix aus – auf iPad, Handy und Computer.": "This is what Studix looks like – on iPad, phone and computer.",
     "Deine Region": "Your region",
     "Wo lebst du?": "Where do you live?",
-    "Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.": "So prices and currency are right for you – CHF, EUR or USD. Tax depends on your billing address.",
+    "Alle Preise sind in Euro. Die Steuer richtet sich nach deiner Rechnungsadresse.": "All prices are in euros. Tax depends on your billing address.",
     "Land wählen …": "Choose country …",
     "Über dich": "About you",
     "Wie lernst du?": "How do you learn?",
@@ -764,4 +764,13 @@ window.LPL_APP.dateEn = (() => {
   return s => s.replace(re, (_, d, m, y) => `${M[m]} ${+d}, ${y}`);
 })();
 window.LPL_APP.RX.push(["^Aktiv · verlängert sich am (.+)$", "Active · renews on $1"], ["^Gekündigt – Zugang bis (.+)$", "Cancelled – access until $1"], ["^Testversion endet in (.+) \\(am (.+)\\)$", "Trial ends in $1 (on $2)"], ["^Aktiv$", "Active"]);
-
+window.LPL_APP.RX.push(["^Studix AI mit bis zu (.+) Token pro Woche und (.+) pro 5 Stunden – halb so viel wie Pro$", "Studix AI with up to $1 tokens per week and $2 per 5 hours – half as much as Pro"],
+  ["^Studix AI mit bis zu (.+) Token pro Woche und (.+) pro 5 Stunden \\(Gratis: bis zu (.+) / (.+)\\) – ohne Garantie, kann eingeschränkt werden$", "Studix AI with up to $1 tokens per week and $2 per 5 hours (Free: up to $3 / $4) – no guarantee, may be restricted"],
+  ["^Halb so viel Studix AI wie Pro \\((.+) Token pro Woche\\), ohne Bild-Analyse und Sprache\\.$", "Half as much Studix AI as Pro ($1 tokens per week), without image analysis and voice."],
+  ["^Mit Studix Study Pro bekommst du (.+) statt (.+) Token pro Woche für Studix AI\\.$", "With Studix Study Pro you get $1 instead of $2 tokens per week for Studix AI."],
+  ["^Studix AI mit (.+) Token pro Woche – bald verfügbar$", "Studix AI with $1 tokens per week – coming soon"],
+  ["^Mehr mit Essential oder Pro \\(bis (.+) pro Woche\\)$", "More with Essential or Pro (up to $1 per week)"],
+  ["^Mehr mit Pro \\((.+) pro Woche\\)$", "More with Pro ($1 per week)"],
+  ["^Studix Study Pro bringt Studix AI auf (.+) Token pro Woche\\. Es ist bald verfügbar\\.$", "Studix Study Pro brings Studix AI to $1 tokens per week. It's coming soon."],
+  ["^Studix AI: (.+) Token pro Woche \\(\\+ 5-Stunden-Limit\\)$", "Studix AI: $1 tokens per week (+ 5-hour limit)"],
+  ["^Studix AI · (.+) Token pro Woche$", "Studix AI · $1 tokens per week"]);

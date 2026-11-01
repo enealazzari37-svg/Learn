@@ -6,10 +6,15 @@ const LPL = (() => {
     RX = [["^Erneut senden in (\\d+) s$", "Resend in $1 s"], ["^Bis zu (\\d+) Dokumente, (\\d+) Whiteboards$", "Up to $1 documents, $2 whiteboards"], ["^Studix AI: bis zu (.+) Token pro Woche\\* – halb so viel wie Pro$", "Studix AI: up to $1 tokens per week* – half as much as Pro"], ["^Studix AI: bis zu (.+) Token pro Woche\\*$", "Studix AI: up to $1 tokens per week*"], ["^(\\d+) Tage gratis, ohne Risiko\\.$", "$1 days free, no risk."], ["^(\\d+) Tage gratis testen$", "Try free for $1 days"], ["^(\\d+) Tage kostenlos testen$", "$1-day free trial"], ["^Nur (.+) pro Monat – du sparst (\\d+) %\\.$", "Only $1 per month – you save $2 %."], ["^Nur (.+) pro Monat\\.$", "Only $1 per month."], ["^Ja, die Grundfunktionen – Notizen, Karteikarten, Quiz, Planer, Noten – sind kostenlos\\. Studix AI hat ein Wochenlimit: (.+) Token im Gratis-Konto, (.+) mit Studix Study Pro\\.$", "Yes, the core features – notes, flashcards, quizzes, planner, grades – are free. Studix AI has a weekly limit: $1 tokens in a free account, $2 with Studix Study Pro."]].map(([re, rep]) => [new RegExp(re), rep]);
   if (window.LPL_APP) { Object.assign(EN, window.LPL_APP.EN, window.LPL_APP.EN2, window.LPL_APP.EN3, window.LPL_APP.EN4); RX.push(...window.LPL_APP.RX); }
   const ATTRS = ["aria-label", "alt", "title", "placeholder"];
-  let lang = "en"; try { if (localStorage.getItem("studix-lang") === "de") lang = "de"; } catch {}
+  let lang = "en"; try { const sv = localStorage.getItem("studix-lang"); if (sv === "de" || sv === "fr") lang = sv; } catch {}   // Standard: Englisch; außerdem Deutsch und Französisch
+  const FR = (window.LPL_FR && window.LPL_FR.FR) || {}, FRX = (window.LPL_FR && window.LPL_FR.RX) || [];
   const touchedT = new Map(), touchedA = [];   // Textknoten → { de: deutsches Original, en: eingesetzter englischer Text }; [Element, Attribut, deutsches Original]
   const lookup = s => {
     const core = String(s).replace(/\s+/g, " ").trim(); if (!core) return null;
+    if (lang === "fr") {   // Französisch: eigenes Wörterbuch, fehlende Texte fallen auf Englisch zurück
+      if (Object.prototype.hasOwnProperty.call(FR, core)) return FR[core];
+      for (const [re, rep] of FRX) { const m = core.match(re); if (m) { const o = rep.replace(/\$(\d)/g, (_, i) => m[+i] || ""); return window.LPL_FR.dateFr ? window.LPL_FR.dateFr(o) : o; } }
+    }
     if (Object.prototype.hasOwnProperty.call(EN, core)) return EN[core];
     for (const [re, rep] of RX) { const m = core.match(re); if (m) { const o = rep.replace(/\$(\d)/g, (_, i) => m[+i] || ""); return window.LPL_APP && window.LPL_APP.dateEn ? window.LPL_APP.dateEn(o) : o; } }
     return null;
@@ -26,7 +31,7 @@ const LPL = (() => {
     if (root.nodeType !== 1 || skip(root)) return;
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = []; let n; while ((n = w.nextNode())) nodes.push(n);
     nodes.forEach(toEn);
-    [root, ...root.querySelectorAll("[aria-label],[alt],[title],[placeholder]")].forEach(e => { if (skip(e)) return; ATTRS.forEach(a => { const v = e.getAttribute && e.getAttribute(a); const at = v ? (Object.prototype.hasOwnProperty.call(ATTR, v.trim()) ? ATTR[v.trim()] : lookup(v)) : null; if (at !== null && at !== undefined) { touchedA.push([e, a, v]); e.setAttribute(a, at.replace(/^\^/, "")); } }); });
+    [root, ...root.querySelectorAll("[aria-label],[alt],[title],[placeholder]")].forEach(e => { if (skip(e)) return; ATTRS.forEach(a => { const v = e.getAttribute && e.getAttribute(a); const at = v ? (lang !== "fr" && Object.prototype.hasOwnProperty.call(ATTR, v.trim()) ? ATTR[v.trim()] : lookup(v) ?? (Object.prototype.hasOwnProperty.call(ATTR, v.trim()) ? ATTR[v.trim()] : null)) : null; if (at !== null && at !== undefined) { touchedA.push([e, a, v]); e.setAttribute(a, at.replace(/^\^/, "")); } }); });
   }
   function toDe(root) {   // alles unter root zurück auf Deutsch (ohne root: alles)
     for (const [n, r] of touchedT) if (!root || root.contains(n)) { if (n.isConnected && n.nodeValue === r.en) n.nodeValue = r.de; touchedT.delete(n); }
@@ -38,16 +43,16 @@ const LPL = (() => {
   /* Englisch gilt auf der Startseite (und für Cookie-Hinweis/Popups, solange man dort ist); in der App bleibt alles deutsch */
   function sync() {
     document.documentElement.lang = lang;
-    const l = landing(); if (l) { if (lang === "en") toEn(l); else toDe(l); }
-    extras().forEach(e => { if (lang === "en" && englishPage()) toEn(e); else toDe(e); });
-    const ap = document.getElementById("app"); if (ap && !ap.hidden) { if (lang === "en") toEn(ap); else toDe(ap); }   // Login, Registrierung, Early Access
+    const l = landing(); if (l) { if (lang !== "de") toEn(l); else toDe(l); }
+    extras().forEach(e => { if (lang !== "de" && englishPage()) toEn(e); else toDe(e); });
+    const ap = document.getElementById("app"); if (ap && !ap.hidden) { if (lang !== "de") toEn(ap); else toDe(ap); }   // Login, Registrierung, Early Access
     document.title = title();
-    document.querySelectorAll(".lang-sw button,[data-lang-set] button").forEach(b => b.classList.toggle("on", b.dataset.lang === lang));
+    document.querySelectorAll(".lang-sw button,[data-lang-set] button").forEach(b => b.classList.toggle("on", b.dataset.lang === lang)); document.querySelectorAll("select#slang").forEach(s => { s.value = lang; });
   }
   let queue = new Set(), raf = 0;
-  const flush = () => { raf = 0; const q = [...queue]; queue = new Set(); if (lang !== "en") return; q.forEach(n => { if (!n.isConnected) return; const inLanding = landing() && landing().contains(n), inAuth = n.nodeType === 1 ? !!n.closest(".authwrap") : !!(n.parentElement && n.parentElement.closest(".authwrap")); if (inLanding || englishPage() || inAuth) toEn(n); }); };
+  const flush = () => { raf = 0; const q = [...queue]; queue = new Set(); if (lang === "de") return; q.forEach(n => { if (!n.isConnected) return; const inLanding = landing() && landing().contains(n), inAuth = n.nodeType === 1 ? !!n.closest(".authwrap") : !!(n.parentElement && n.parentElement.closest(".authwrap")); if (inLanding || englishPage() || inAuth) toEn(n); }); };
   const obs = new MutationObserver(ms => {
-    if (lang !== "en") return;
+    if (lang === "de") return;
     const onAuth = !!document.querySelector("#app .authwrap");   // in der App selbst wird nichts übersetzt
     ms.forEach(m => {
       const inApp = m.target.nodeType && (m.target.nodeType === 1 ? m.target : m.target.parentElement) && (m.target.nodeType === 1 ? m.target : m.target.parentElement).closest("#app");
@@ -64,10 +69,11 @@ const LPL = (() => {
     }
     sync();
   }
-  function set(l) { lang = l === "de" ? "de" : "en"; try { localStorage.setItem("studix-lang", lang); } catch {} sync(); document.title = title(); }
-  const title = () => landingOn() ? (lang === "en" ? "Studix – Learning that works" : "Studix – Lernen, das funktioniert") : (document.querySelector("#app .authwrap") ? tt(document.title) : document.title);
+  function set(l) { const n = l === "de" || l === "fr" ? l : "en"; if (n !== lang) toDe(); lang = n; try { localStorage.setItem("studix-lang", lang); } catch {} sync(); document.title = title(); }
+  const title = () => landingOn() ? ({ en: "Studix – Learning that works", fr: "Studix – Apprendre efficacement", de: "Studix – Lernen, das funktioniert" })[lang] : (document.querySelector("#app .authwrap") ? tt(document.title) : document.title);
   const rev = t => { for (const k in EN) if (EN[k] === t) return k; return null; };
-  function tt(s) { const de = rev(s) || s; return lang === "en" && Object.prototype.hasOwnProperty.call(EN, de) ? EN[de] : de; }   // Seitentitel der Login-Seiten
+  function tt(s) { const de = rev(s) || (Object.keys(FR).find(k => FR[k] === s)) || s; if (lang === "fr" && Object.prototype.hasOwnProperty.call(FR, de)) return FR[de]; return lang !== "de" && Object.prototype.hasOwnProperty.call(EN, de) ? EN[de] : de; }   // Seitentitel der Login-Seiten
+  document.addEventListener("change", e => { if (e.target && e.target.id === "slang") set(e.target.value); });
   document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".lang-sw button,[data-lang-set] button"); if (b) set(b.dataset.lang); });
   return { mount, sync, set, title, tt, get lang() { return lang; } };
 })();

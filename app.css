@@ -5081,3 +5081,5 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .rc-card{margin-top:14px}.rc-card #rc-in{width:170px;flex:none;letter-spacing:.12em;text-transform:uppercase;font-size:13px}.rc-card .btn{flex:none}
 .rc-card small.rc-m{display:block;margin-top:2px}.rc-m.ok{color:#15803d;font-weight:600}.rc-m.err{color:#b91c1c;font-weight:600}.rc-m.load{color:#777}
 @media(max-width:640px){.rc-card{flex-wrap:wrap}.rc-card #rc-in{flex:1;width:auto;min-width:120px}}
+select#slang{appearance:none;-webkit-appearance:none;cursor:pointer;width:auto;min-width:160px;padding:9px 38px 9px 14px;border-radius:999px;background:#f3f3f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;border:0;font-weight:600}
+select#slang:hover{background-color:#ececf0}

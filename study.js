@@ -91,7 +91,7 @@ function onboarding() {
     features: () => `<span class="obx-eyebrow">Das kann Studix</span><h1>Alles, was du zum Lernen brauchst.</h1><p class="obx-sub">So sieht Studix aus – auf iPad, Handy und Computer.</p>
       <div class="obx-shots" id="ob-shots"><div class="obx-stage">${OB_FEATURES.map(([k], i) => `<img src="ob/shot-${k}.webp" alt="" class="${i ? "" : "on"}" loading="eager" draggable="false">`).join("")}</div>
       <div class="obx-cap">${OB_FEATURES.map(([k, t, d], i) => `<div class="${i ? "" : "on"}"><b>${t}</b><small>${d}</small></div>`).join("")}</div></div>`,
-    region: () => `<span class="obx-eyebrow">Deine Region</span><h1>Wo lebst du?</h1><p class="obx-sub">Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.</p>
+    region: () => `<span class="obx-eyebrow">Deine Region</span><h1>Wo lebst du?</h1><p class="obx-sub">Alle Preise sind in Euro. Die Steuer richtet sich nach deiner Rechnungsadresse.</p>
       <div class="obx-hero obx-hero-s" style="background-image:url(ob/photo-laptop.webp)"></div><label class="obx-l" for="ob-c">Land</label><select class="obx-in obx-sel" id="ob-c"><option value="" ${O.country ? "" : "selected"} disabled>Land wählen …</option>${countryOptions(O.country)}</select>
       <p class="obx-hint" id="ob-ch">${hint()}</p>`,
     who: () => `<span class="obx-eyebrow">Über dich</span><h1>Wie lernst du?</h1><p class="obx-sub">So passen wir Fächer, Noten und Studix AI an dich an.</p>

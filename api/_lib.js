@@ -59,8 +59,8 @@ async function plans() {
 /* Währung nach Land des Besuchs (Vercel-Header): Schweiz → CHF, Euroraum → EUR, sonst USD */
 const EURO = "AT BE CY DE EE ES FI FR GR HR IE IT LT LU LV MT NL PT SI SK AD MC SM VA ME".split(" ");
 const EUROPA = EURO.concat("AL BA BG CZ DK GB HU IS MK NO PL RO RS SE UA XK TR".split(" "));
-const currencyOfCountry = c => { c = String(c || "").toUpperCase(); return !c || c === "XX" ? "" : c === "CH" || c === "LI" ? "chf" : EUROPA.includes(c) ? "eur" : "usd"; };
-const currencyFor = (req, avail, country) => { const c = String(country || req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = currencyOfCountry(c) || (c ? "usd" : ""); return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
+const currencyOfCountry = () => "eur";   // Preise überall in Euro (Standard für alle Länder)
+const currencyFor = (req, avail, country) => { const c = String(country || req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = currencyOfCountry(c); return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
 const CURRENCY = () => String(process.env.PLUS_CURRENCY || "eur").toLowerCase();
 const billingReady = async () => { const P = await plans(); return !!(stripeKey() && (P.monthly.price || P.yearly.price)); };
 

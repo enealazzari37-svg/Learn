@@ -546,7 +546,7 @@ V.settings = m => {
     <div class="kv"><span>${KVI.book}${p.level === "uni" ? "Hochschule" : "Schule"}</span><input class="field flat" id="ssc" value="${esc(p.school || "")}" placeholder="${p.level === "uni" ? "z. B. ETH Zürich" : "z. B. Kantonsschule"}"></div>
     <div class="kv"><span>${KVI.cap}${p.level === "uni" ? "Studiengang" : "Klasse"}</span><input class="field flat" id="scl" value="${esc(p.course || "")}" placeholder="${p.level === "uni" ? "z. B. Biologie, 3. Semester" : "z. B. 3b"}"></div>
     <div class="kv"><span>${KVI.user}Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
-    <div class="kv"><span>${KVI.star}Sprache</span><div class="seg" id="slang" data-lang-set data-nolang><button type="button" data-lang="en" class="${LPL.lang === "en" ? "on" : ""}">English</button><button type="button" data-lang="de" class="${LPL.lang === "de" ? "on" : ""}">Deutsch</button></div></div>
+    <div class="kv"><span>${KVI.star}Sprache</span><div class="kvc" data-nolang><select class="field flat" id="slang" aria-label="Sprache"><option value="en"${LPL.lang === "en" ? " selected" : ""}>English</option><option value="de"${LPL.lang === "de" ? " selected" : ""}>Deutsch</option><option value="fr"${LPL.lang === "fr" ? " selected" : ""}>Français</option></select></div></div>
     <div class="kv"><span>${KVI.star}Profilfarbe</span><div class="avsw" id="avsw">${CO_COL.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${meCol() === c ? "on" : ""}" aria-label="Farbe"></button>`).join("")}</div></div>
     </div>
   </div>
