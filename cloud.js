@@ -124,12 +124,18 @@ async function cloudVerifyView(el, email, pw, done) {
     if (!quiet) say("Noch nicht bestätigt – bitte klicke zuerst auf den Link in der E-Mail.", "err"); return false;
   };
   const boxes = $$(".otp", host), getCode = () => boxes.map(i => i.value).join("");
+  let verifying = false;
   const verifyCode = async () => {
+    if (verifying || stop) return;   // nur eine Prüfung gleichzeitig (Auto-Absenden + Enter/Klick würden sonst den Code zweimal einlösen → zweiter Versuch „ungültig“)
     const t = getCode(); if (t.length < 6) return say("Gib alle 6 Ziffern des Codes aus der E-Mail ein.", "err");
-    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("is-loading"); boxes.forEach(i => i.disabled = true);
+    verifying = true; say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("is-loading"); boxes.forEach(i => i.disabled = true);
     const { error } = await CLOUD.sb.auth.verifyOtp({ email, token: t, type: "signup" });
     $("#av-ok", host).classList.remove("is-loading"); boxes.forEach(i => i.disabled = false);
-    if (error) { say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err"); $("#av-c", host).classList.add("shake"); setTimeout(() => $("#av-c", host).classList.remove("shake"), 450); boxes.forEach(i => i.value = ""); boxes[0].focus(); return; }
+    verifying = false;
+    if (stop) return;   // inzwischen bestätigt (z. B. über den Link)
+    if (error) {   // vor der Fehlermeldung prüfen, ob die Bestätigung trotzdem geklappt hat
+      try { const { data: ss } = await CLOUD.sb.auth.getSession(); if (ss.session?.user && !cloudUnconfirmed(ss.session.user)) { stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done(); return; } } catch {}
+      say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err"); $("#av-c", host).classList.add("shake"); setTimeout(() => $("#av-c", host).classList.remove("shake"), 450); boxes.forEach(i => i.value = ""); boxes[0].focus(); return; }
     stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done();
   };
   const fill = (from, digits) => { digits.split("").slice(0, 6 - from).forEach((d, k) => { boxes[from + k].value = d; }); const nx = Math.min(5, from + digits.length); boxes[nx].focus(); boxes.forEach(i => i.classList.toggle("on", !!i.value)); if (getCode().length === 6) verifyCode(); };
@@ -196,6 +202,38 @@ async function accessCheck() {
     else toast(j.error || "Dieser Code ist ungültig.");
   } catch {}
 }
+/* Code prüfen (löst nichts ein) → [Klasse, Text] */
+async function codeCheck(v) {
+  try {
+    const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", code: v }) }), j = await r.json().catch(() => ({}));
+    if (!r.ok) return ["err", "Code konnte nicht geprüft werden."];
+    if (j.valid) return ["ok", j.kind === "referral" ? "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben." : j.kind === "gift" ? `✓ Gültig – ${j.months} Monate Pro geschenkt.` : "✓ Gültig."];
+    return ["err", { short: "Der Code ist noch zu kurz.", used_up: "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.", inactive: "✗ Dieser Einladungscode ist nicht mehr aktiv." }[j.reason] || "✗ Dieser Code ist ungültig."];
+  } catch { return ["err", "Keine Verbindung. Versuche es noch einmal."]; }
+}
+/* „Code einlösen“ in den Einstellungen (Profil, ganz unten): Einladungs- und Early-Access-Codes auch später noch eingeben */
+function codeCardBind(m) {
+  const i = $("#rc-in", m), b = $("#rc-go", m), msg = $("#rc-msg", m); if (!i || !b || !msg) return;
+  let tm = 0, seq = 0, busy = false; const hint = msg.textContent;
+  const set = (cls, t) => { msg.className = "rc-m " + cls; msg.textContent = t; };
+  i.addEventListener("input", () => { clearTimeout(tm); const v = i.value.trim(), my = ++seq; if (!v) { msg.className = "rc-m"; msg.textContent = hint; LPL.sync(); return; } tm = setTimeout(async () => { set("load", "Code wird geprüft …"); const [cls, t] = await codeCheck(v); if (my === seq) set(cls, t); }, 450); });
+  const go = async () => {
+    const v = i.value.trim(); if (busy || !v) return; busy = true; b.disabled = true; clearTimeout(tm); seq++; set("load", "Wird eingelöst …");
+    try {
+      const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code: v }) }), j = await r.json().catch(() => ({}));
+      if (!r.ok) set("err", j.error || "Dieser Code ist ungültig.");
+      else {
+        try { if (localStorage.getItem(RC_KEY) && C_norm(localStorage.getItem(RC_KEY)) === C_norm(v)) localStorage.removeItem(RC_KEY); } catch {}
+        set("ok", j.referral ? "✓ Eingelöst – 1 Monat Pro und Guthaben sind gutgeschrieben." : j.gift ? "✓ Eingelöst – Pro ist freigeschaltet." : "✓ Eingelöst."); i.value = "";
+        toast(j.referral ? "Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉" : j.gift ? "Early Backer: Pro geschenkt 🎉" : "Code eingelöst");
+        try { await plusLoad(false); } catch {} try { if (curView === "settings") { window.__setTab = "gen"; renderView(); } } catch {}
+      }
+    } catch { set("err", "Keine Verbindung. Versuche es noch einmal."); }
+    busy = false; b.disabled = false;
+  };
+  b.onclick = go; i.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+}
+const C_norm = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = LPL.tt(up ? "Studix – Konto erstellen" : "Studix – Anmelden");
   app.innerHTML = `<div class="authwrap"><div class="authshell">
@@ -219,16 +257,10 @@ function authScreen(mode = "in") {
   const rc = $("#cl-rc", f), rm = $("#cl-rcm", f);   // Code live prüfen: gültig oder nicht
   if (rc && rm) {
     const hint = rm.textContent; let tm = 0, seq = 0;
-    const show = (cls, t) => { rm.className = "note rc-m " + cls; rm.textContent = t; };
     const check = async () => {
       const v = rc.value.trim(), my = ++seq; if (!v) { rm.className = "note rc-m"; rm.textContent = hint; LPL.sync(); return; }
-      show("load", "Code wird geprüft …");
-      try {
-        const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", code: v }) }), j = await r.json().catch(() => ({})); if (my !== seq) return;
-        if (!r.ok) return show("err", "Code konnte nicht geprüft werden.");
-        if (j.valid) show("ok", j.kind === "referral" ? "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben." : j.kind === "gift" ? `✓ Gültig – ${j.months} Monate Pro geschenkt.` : "✓ Gültig.");
-        else show("err", { short: "Der Code ist noch zu kurz.", used_up: "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.", inactive: "✗ Dieser Einladungscode ist nicht mehr aktiv." }[j.reason] || "✗ Dieser Code ist ungültig.");
-      } catch { if (my === seq) show("err", "Keine Verbindung. Versuche es noch einmal."); }
+      rm.className = "note rc-m load"; rm.textContent = "Code wird geprüft …";
+      const [cls, t] = await codeCheck(v); if (my !== seq) return; rm.className = "note rc-m " + cls; rm.textContent = t;
     };
     rc.addEventListener("input", () => { clearTimeout(tm); tm = setTimeout(check, 450); }); if (rc.value.trim()) check();
   }

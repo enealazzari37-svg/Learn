@@ -5078,3 +5078,6 @@ html:has(.bd2),html:has(.bd2) body{overflow:hidden!important;height:100%}
 .inv-note{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;margin:6px 0 10px}.inv-note span{width:26px;height:26px;border-radius:50%;background:#f1f1f4;display:grid;place-items:center}.inv-note svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .trialpill.free{background:#ececf0;color:#0f0f12}
 .rc-m.ok{color:#15803d;font-weight:600}.rc-m.err{color:#b91c1c;font-weight:600}.rc-m.load{color:#777}
+.rc-card{margin-top:14px}.rc-card #rc-in{width:170px;flex:none;letter-spacing:.12em;text-transform:uppercase;font-size:13px}.rc-card .btn{flex:none}
+.rc-card small.rc-m{display:block;margin-top:2px}.rc-m.ok{color:#15803d;font-weight:600}.rc-m.err{color:#b91c1c;font-weight:600}.rc-m.load{color:#777}
+@media(max-width:640px){.rc-card{flex-wrap:wrap}.rc-card #rc-in{flex:1;width:auto;min-width:120px}}

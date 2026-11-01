@@ -717,6 +717,8 @@ window.LPL_APP = {
     "Alles bereit": "All set",
   },
   EN4: {
+    "Code einlösen": "Redeem code", "Einlösen": "Redeem", "Einladungs- oder Early-Access-Code eingeben – schaltet z. B. Pro für einen Monat frei.": "Enter an invite or early access code – e.g. unlocks Pro for a month.", "Wird eingelöst …": "Redeeming …",
+    "✓ Eingelöst – 1 Monat Pro und Guthaben sind gutgeschrieben.": "✓ Redeemed – 1 month of Pro and credit have been added.", "✓ Eingelöst – Pro ist freigeschaltet.": "✓ Redeemed – Pro is unlocked.", "✓ Eingelöst.": "✓ Redeemed.", "Code eingelöst": "Code redeemed", "Keine Verbindung. Versuche es noch einmal.": "No connection. Please try again.",
     "Code wird geprüft …": "Checking code …", "Code konnte nicht geprüft werden.": "Code couldn't be checked.", "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben.": "✓ Valid – you both get 1 month of Pro and credit.", "✓ Gültig.": "✓ Valid.",
     "Der Code ist noch zu kurz.": "The code is still too short.", "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.": "✗ This code has already been redeemed as often as it's valid.", "✗ Dieser Einladungscode ist nicht mehr aktiv.": "✗ This invitation code is no longer active.", "✗ Dieser Code ist ungültig.": "✗ This code is invalid.",
     "Abo: Gratis": "Plan: Free", "Gratis-Plan": "Free plan", "Pläne ansehen": "View plans", "Dein geschenktes Pro ist abgelaufen.": "Your gifted Pro has expired.",

@@ -553,6 +553,7 @@ V.settings = m => {
   <div class="panel aiuse" id="aiuse" hidden></div>
   ${cloudOn() && BILL.cfg && BILL.cfg.enabled ? `<div class="sthome setfull"><span class="sth-i">${ic("gift")}</span><div><b>Freunde einladen</b><small>Ihr bekommt beide 1 Monat Pro und ${money(200)} Guthaben – mit Essential und Pro.</small></div><button class="btn ghost small" type="button" data-invite>Einladen</button></div>` : ""}
   <div class="sthome setfull"><span class="sth-i">${ic("table")}</span><div><b>Startseite</b><small>Blöcke ersetzen, verschieben und in der Größe ändern – mit Vorlagen.</small></div><button class="btn ghost small" id="hed-open" type="button">${ic("pen")}Bearbeiten</button></div>
+  ${CLOUD.user && cloudOn() ? `<div class="sthome setfull rc-card"><span class="sth-i">${ic("gift")}</span><div><b>Code einlösen</b><small class="rc-m" id="rc-msg">Einladungs- oder Early-Access-Code eingeben – schaltet z. B. Pro für einen Monat frei.</small></div><input class="field pill" id="rc-in" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" aria-label="Code"><button class="btn small" id="rc-go" type="button">Einlösen</button></div>` : ""}
   ${CLOUD.user ? `<div class="accbot"><button class="btn ghost" id="set-out" type="button">${ic("logout")}Abmelden</button><button class="btn danger-o" id="set-del" type="button">${ic("trash")}Konto löschen</button></div>` : ""}
   </div><div class="setsec" data-s="ai">
   <div class="panel"><h2>${ic("spark")}Studix AI</h2>
@@ -577,6 +578,7 @@ V.settings = m => {
   <div class="savestat" id="savestat" aria-live="polite"></div></div></div>`;
   $$(".kv-edit", m).forEach(b => b.onclick = () => { const c = b.closest(".kvcard"), on = c.classList.toggle("editing"); b.classList.toggle("on", on); b.innerHTML = ic(on ? "check" : "pen"); b.title = on ? "Fertig" : "Bearbeiten"; if (on) c.querySelector("input.field,select.field")?.focus(); });
   $$("#avsw button", m).forEach(b => b.onclick = () => { D.profile.avColor = b.dataset.c; save(); $$("#avsw button", m).forEach(x => x.classList.toggle("on", x === b)); $$(".av-xl,.prof .av", document).forEach(e => e.style.background = b.dataset.c); });
+  try { codeCardBind(m); } catch {}
   $("#set-out", m) && ($("#set-out", m).onclick = () => cloudLogout()); $("#set-del", m) && ($("#set-del", m).onclick = () => accountDeleteModal());
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
