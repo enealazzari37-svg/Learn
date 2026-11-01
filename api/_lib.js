@@ -110,8 +110,14 @@ function verifyStripeSignature(raw, header, secret, tolerance = 300) {
 }
 
 /* Eingeloggte Person aus dem Supabase-Token ermitteln */
+const userCache = new Map();   // Token → { at, u }: spart bei jeder KI-/API-Anfrage den Aufruf bei Supabase (60 s)
 async function userFromReq(req) {
   const m = /^Bearer\s+(.+)$/i.exec(req.headers.authorization || ""); if (!m) return null;
+  const hit = userCache.get(m[1]); if (hit && Date.now() - hit.at < 60000) return hit.u;
+  const u = await userFromToken(m[1]); if (u) { if (userCache.size > 500) userCache.clear(); userCache.set(m[1], { at: Date.now(), u }); } return u;
+}
+async function userFromToken(token) {
+  const m = [0, token];
   try {
     const r = await fetch(SB_URL() + "/auth/v1/user", { headers: { apikey: SB_ANON(), authorization: "Bearer " + m[1] } });
     if (!r.ok) return null; const u = await r.json(); return u?.id ? { id: u.id, email: u.email || "" } : null;
@@ -160,7 +166,7 @@ async function findSubscription(uid) {
 }
 async function liveSubscription(uid, { fresh = false, withInvoices = false } = {}) {
   const c = subCache.get(uid);
-  if (!fresh && !withInvoices && c && Date.now() - c.at < 20000) return c.v;
+  if (!fresh && !withInvoices && c && Date.now() - c.at < 60000) return c.v;
   const sub = await findSubscription(uid); let v = null;
   if (sub) {
     let inv = []; if (withInvoices) { try { inv = (await stripe("GET", "/invoices", { subscription: sub.id, limit: 6 })).data || []; } catch {} }
@@ -171,7 +177,7 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
 /* Geschenk-Pro: Early-Backer (pro_until + Abzeichen) und Einladungs-Monate (ref_pro_until) stehen in app_metadata des Kontos (nur mit dem Service-Key schreibbar) → { until: ISO, badge } oder null */
 const grantCache = new Map();
 async function grantOf(uid) {
-  const c = grantCache.get(uid); if (c && Date.now() - c.at < 20000) return c.v;
+  const c = grantCache.get(uid); if (c && Date.now() - c.at < 60000) return c.v;
   let v = null; const key = SB_SERVICE();
   if (key) { try { const r = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { headers: { apikey: key, authorization: "Bearer " + key } }); const m = r.ok ? (await r.json()).app_metadata || {} : {}; const u = [m.early_backer ? m.pro_until : null, m.ref_pro_until].filter(Boolean).sort().pop(); if (u) v = { until: u, badge: m.early_backer ? "early_backer" : null }; } catch {} }
   grantCache.set(uid, { at: Date.now(), v }); return v;

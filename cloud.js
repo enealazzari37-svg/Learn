@@ -2,7 +2,7 @@
 const CLOUD = { sb: null, user: null, dirty: new Set(), timer: null, busy: false };
 const cloudOn = () => !!(window.LUMI_CONFIG.supabaseUrl && window.LUMI_CONFIG.supabaseKey);
 const LS = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
-const syncable = k => !/^blob:/.test(k);
+const syncable = k => !/^(blob:|spell:)/.test(k);   // Rechtschreib-Wörterbuch (spell:…, ~1,4 MB) ist nur ein lokaler Zwischenspeicher und gehört nicht in die Cloud
 function loadSupabaseLib() {
   return new Promise((res, rej) => {
     if (window.supabase) return res();
@@ -45,7 +45,9 @@ async function cloudPush() {
    Nur wenn die Cloud noch leer ist (neues Konto), wird der vorhandene lokale Stand hochgeladen.
    Gehören die lokalen Daten zu einem anderen Konto (lumi-owner), werden sie verworfen und das Konto startet frisch. */
 async function cloudPull() {
-  const { data, error } = await CLOUD.sb.from("lumi_kv").select("k,v,updated_at"); if (error) throw error;
+  /* erst nur Schlüssel + Zeitstempel (winzig), die Inhalte nur für Einträge, die neuer sind als der lokale Stand → spart Datenvolumen bei jedem Start */
+  const { data: meta, error } = await CLOUD.sb.from("lumi_kv").select("k,updated_at"); if (error) throw error;
+  const data = (meta || []).filter(r => syncable(r.k));
   const owner = LS.get("lumi-owner"), foreign = !!owner && owner !== CLOUD.user.id;
   if (foreign) { for (const k of await cloudLocalKeys()) await KV._raw.del(k); LS.set("lumi-sync", "0"); }
   LS.set("lumi-owner", CLOUD.user.id);
@@ -57,7 +59,10 @@ async function cloudPull() {
     for (const k of await cloudLocalKeys()) CLOUD.dirty.add(JSON.stringify([k, false])); await cloudPush(); return false;
   }
   const fresh = data.filter(r => !last || new Date(r.updated_at).getTime() > last); if (!fresh.length) return foreign;
-  for (const r of fresh) await KV._raw.set(r.k, r.v);
+  for (let i = 0; i < fresh.length; i += 25) {
+    const { data: rows, error: e2 } = await CLOUD.sb.from("lumi_kv").select("k,v,updated_at").in("k", fresh.slice(i, i + 25).map(r => r.k)); if (e2) throw e2;
+    for (const r of rows || []) await KV._raw.set(r.k, r.v);
+  }
   LS.set("lumi-sync", String(Date.now())); return true;
 }
 async function cloudLocalKeys() {
@@ -198,7 +203,7 @@ async function accessCheck() {
     const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code }) }), j = await r.json().catch(() => ({}));
     if (r.status === 401 || r.status >= 500) return;   // später nochmal versuchen
     try { localStorage.setItem(rcDoneKey(), "1"); localStorage.removeItem(RC_KEY); } catch {}
-    if (r.ok) { if (j.referral) toast("Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉"); else if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} }
+    if (r.ok) { try { await plusLoad(false); } catch {} if (j.granted && j.until) proGiftPopup(j.until, j.referral ? "Dein Guthaben wird bei der ersten Zahlung verrechnet." : ""); else if (j.referral) toast("Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉"); else if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); }
     else toast(j.error || "Dieser Code ist ungültig.");
   } catch {}
 }
@@ -207,7 +212,7 @@ async function codeCheck(v) {
   try {
     const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "check", code: v }) }), j = await r.json().catch(() => ({}));
     if (!r.ok) return ["err", "Code konnte nicht geprüft werden."];
-    if (j.valid) return ["ok", j.kind === "referral" ? "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben." : j.kind === "gift" ? `✓ Gültig – ${j.months} Monate Pro geschenkt.` : "✓ Gültig."];
+    if (j.valid) return ["ok", j.kind === "referral" ? "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben." : j.kind === "gift" ? `✓ Gültig – ${j.months} Monate Pro geschenkt.` : "✓ Gültig – schaltet 1 Monat Pro frei."];
     return ["err", { short: "Der Code ist noch zu kurz.", used_up: "✗ Dieser Code wurde schon so oft eingelöst, wie er gilt.", inactive: "✗ Dieser Einladungscode ist nicht mehr aktiv." }[j.reason] || "✗ Dieser Code ist ungültig."];
   } catch { return ["err", "Keine Verbindung. Versuche es noch einmal."]; }
 }
@@ -224,9 +229,9 @@ function codeCardBind(m) {
       if (!r.ok) set("err", j.error || "Dieser Code ist ungültig.");
       else {
         try { if (localStorage.getItem(RC_KEY) && C_norm(localStorage.getItem(RC_KEY)) === C_norm(v)) localStorage.removeItem(RC_KEY); } catch {}
-        set("ok", j.referral ? "✓ Eingelöst – 1 Monat Pro und Guthaben sind gutgeschrieben." : j.gift ? "✓ Eingelöst – Pro ist freigeschaltet." : "✓ Eingelöst."); i.value = "";
-        toast(j.referral ? "Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉" : j.gift ? "Early Backer: Pro geschenkt 🎉" : "Code eingelöst");
+        set("ok", j.referral ? "✓ Eingelöst – 1 Monat Pro und Guthaben sind gutgeschrieben." : j.granted ? "✓ Eingelöst – Pro ist freigeschaltet." : "✓ Eingelöst."); i.value = "";
         try { await plusLoad(false); } catch {} try { if (curView === "settings") { window.__setTab = "gen"; renderView(); } } catch {}
+        if (j.granted && j.until) proGiftPopup(j.until, j.referral ? "Dein Guthaben wird bei der ersten Zahlung verrechnet." : ""); else toast(j.referral ? "Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉" : "Code eingelöst – Pro hattest du schon geschenkt bekommen.");
       }
     } catch { set("err", "Keine Verbindung. Versuche es noch einmal."); }
     busy = false; b.disabled = false;

@@ -717,6 +717,9 @@ window.LPL_APP = {
     "Alles bereit": "All set",
   },
   EN4: {
+    "✓ Gültig – schaltet 1 Monat Pro frei.": "✓ Valid – unlocks 1 month of Pro.", "Pro aktiviert 🎉": "Pro activated 🎉", "Alles von Pro, sofort": "Everything in Pro, right away", "Nichts zu erledigen": "Nothing to do",
+    "Keine Zahlungsdaten, kein Abo – danach gilt automatisch wieder dein Plan.": "No payment details, no subscription – afterwards your plan applies again automatically.", "Dein Guthaben wird bei der ersten Zahlung verrechnet.": "Your credit will be applied to your first payment.",
+    "Code eingelöst – Pro hattest du schon geschenkt bekommen.": "Code redeemed – you had already received the Pro gift.",
     "Code einlösen": "Redeem code", "Einlösen": "Redeem", "Einladungs- oder Early-Access-Code eingeben – schaltet z. B. Pro für einen Monat frei.": "Enter an invite or early access code – e.g. unlocks Pro for a month.", "Wird eingelöst …": "Redeeming …",
     "✓ Eingelöst – 1 Monat Pro und Guthaben sind gutgeschrieben.": "✓ Redeemed – 1 month of Pro and credit have been added.", "✓ Eingelöst – Pro ist freigeschaltet.": "✓ Redeemed – Pro is unlocked.", "✓ Eingelöst.": "✓ Redeemed.", "Code eingelöst": "Code redeemed", "Keine Verbindung. Versuche es noch einmal.": "No connection. Please try again.",
     "Code wird geprüft …": "Checking code …", "Code konnte nicht geprüft werden.": "Code couldn't be checked.", "✓ Gültig – ihr bekommt beide 1 Monat Pro und Guthaben.": "✓ Valid – you both get 1 month of Pro and credit.", "✓ Gültig.": "✓ Valid.",
@@ -725,6 +728,8 @@ window.LPL_APP = {
     "Danach gilt wieder dein Gratis-Plan. Du kannst jetzt schon einen Plan wählen – er startet sofort.": "After that your Free plan applies again. You can already choose a plan now – it starts immediately.",
   },
   RX: [
+    ["^Studix AI mit (.+) Token pro Woche, längere Antworten, Bild-Analyse und Sprache\\.$", "Studix AI with $1 tokens per week, longer answers, image analysis and voice."],
+    ["^Studix Study Pro ist für 1 Monat freigeschaltet – bis (.+)\\.$", "Studix Study Pro is unlocked for 1 month – until $1."], ["^Studix Study Pro ist für (\\d+) Monate freigeschaltet – bis (.+)\\.$", "Studix Study Pro is unlocked for $1 months – until $2."],
     ["^✓ Gültig – (\\d+) Monate Pro geschenkt\\.$", "✓ Valid – $1 months of Pro as a gift."], ["^Abo: Pro geschenkt · bis (.+)$", "Plan: Pro (gift) · until $1"], ["^Pro geschenkt – gültig bis (.+)$", "Pro gifted – valid until $1"], ["^Pro geschenkt bis (.+)$", "Pro gifted until $1"],
     ["^Abo: (Essential|Pro) · aktiv, verlängert am (.+?)( · Pro geschenkt bis (.+))?$", "Plan: $1 · active, renews on $2"], ["^Abo: (Essential|Pro) · gekündigt, Zugang bis (.+)$", "Plan: $1 · cancelled, access until $2"], ["^Abo: (Essential|Pro) · Testversion endet in (.+)$", "Plan: $1 · trial ends in $2"],
     ["^(\\d+) Tage in Folge – starke Serie! 🔥$", "$1 days in a row – great streak! 🔥"], ["^eingeladen · noch (\\d+) möglich$", "invited · $1 left"], ["^eingeladen · noch (\\d+) möglich · Guthaben (.+) wird bei der nächsten Zahlung verrechnet$", "invited · $1 left · credit of $2 will be applied to your next payment"],

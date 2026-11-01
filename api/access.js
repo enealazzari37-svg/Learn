@@ -33,7 +33,7 @@ async function refRedeem(res, user, code) {
     /* beide: 1 Monat Pro; Einladende:r hat meist schon ein Abo → Guthaben sofort bei Stripe gutschreiben (die eingeladene Person bekommt es beim ersten Bezahlen) */
     const [mine] = await Promise.all([L.giftMonth(user.id), L.giftMonth(owner).catch(() => null)]);
     try { const s = await L.liveSubscription(owner, { fresh: true }); if (s?.customer && s.currency) await L.applyCredits(owner, s.customer, s.currency); } catch {}
-    return res.status(200).json({ ok: true, referral: true, until: mine, credit_cents: 200 });
+    return res.status(200).json({ ok: true, referral: true, granted: true, until: mine, credit_cents: 200 });
   } catch (e) { return res.status(noSql(e) ? 503 : 502).json({ error: noSql(e) ? "Einladungen sind noch nicht eingerichtet." : e.message }); }
 }
 
@@ -77,9 +77,15 @@ module.exports = async function handler(req, res) {
     if (!hit && !base && !limited) return res.status(403).json({ error: "Dieser Code ist ungültig." });
     const m = { access: true };
     if (hit && !(await L.grantOf(user.id))?.badge) { const until = new Date(); until.setMonth(until.getMonth() + hit.months); m.early_backer = true; m.pro_until = until.toISOString(); }
+    /* Zugangscodes (fester oder mit begrenzter Einlösung) schalten direkt Pro für 1 Monat frei – einmal pro Konto, ohne Zahlungsdaten */
+    let until = m.pro_until || null, granted = !!m.early_backer;
+    if (!hit && (base || limited)) {
+      const cur = await meta();
+      if (!cur.code_pro) { until = await L.giftMonth(user.id); m.code_pro = true; granted = true; } else until = cur.ref_pro_until || null;
+    }
     const r = await fetch(adminUrl(user.id), { method: "PUT", headers: adminHeaders(key), body: JSON.stringify({ app_metadata: m }) });
     if (!r.ok) return res.status(502).json({ error: "Konnte den Code nicht einlösen." });
     L.dropGrantCache(user.id); L.dropSubCache(user.id);
-    res.status(200).json({ ok: true, gift: !!hit && !!m.early_backer });
+    res.status(200).json({ ok: true, gift: !!hit && !!m.early_backer, granted, until });
   } catch (e) { res.status(e.status && e.status < 600 ? e.status : 502).json({ error: e.message }); }
 };

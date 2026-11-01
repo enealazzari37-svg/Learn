@@ -116,6 +116,17 @@ function proNudge(kind, title, msg) {
   st[kind] = st._last = Date.now(); try { localStorage.setItem("studix-nudge", JSON.stringify(st)); } catch {}
   proUpsell(msg, title); return true;
 }
+/* Popup „Pro aktiviert“ – nach dem Einlösen eines Codes (direkt nach der Anmeldung oder in den Einstellungen) */
+function proGiftPopup(until, extra) {
+  const mo = Math.max(1, Math.round((new Date(until).getTime() - Date.now()) / 2592e6)), el = document.createElement("div"); el.className = "wsp";
+  el.innerHTML = `<div class="wsp-in"><svg class="wsp-ck" viewBox="0 0 96 96" width="96" height="96"><circle class="wsp-c" cx="48" cy="48" r="42" pathLength="100"/><path class="wsp-v" d="M30 50l13 13 24-28" pathLength="100"/></svg>
+    <h1>Pro aktiviert 🎉</h1><p class="wsp-s">Studix Study Pro ist für ${mo === 1 ? "1 Monat" : mo + " Monate"} freigeschaltet – bis ${dateDE(until)}.</p>
+    <div class="wsp-card"><div class="wsp-row"><span class="obx-ico">${ic("spark")}</span><div><b>Alles von Pro, sofort</b><small>Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche, längere Antworten, Bild-Analyse und Sprache.</small></div></div>
+      <div class="wsp-row"><span class="obx-ico">${ic("check")}</span><div><b>Nichts zu erledigen</b><small>Keine Zahlungsdaten, kein Abo – danach gilt automatisch wieder dein Plan.${extra ? " " + esc(extra) : ""}</small></div></div></div>
+    <div class="wsp-act"><button class="obx-go" id="wsp-go" type="button">Los geht’s</button></div></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 350); }; $("#wsp-go", el).onclick = close; try { LPL.sync(); } catch {}
+}
 /* Lernserie erreicht (3 / 7 / 14 Tage): beim Öffnen des Dashboards */
 function streakNudge() {
   if (EMBED_MODE) return; const n = typeof streak === "function" ? streak() : 0, t = n >= 14 ? 14 : n >= 7 ? 7 : n >= 3 ? 3 : 0; if (!t) return;

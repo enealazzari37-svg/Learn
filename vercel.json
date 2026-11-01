@@ -1,5 +1,10 @@
 {
   "regions": [
     "fra1"
+  ],
+  "headers": [
+    { "source": "/(.*)\\.(woff2|webp|mp4)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000, stale-while-revalidate=86400" }] },
+    { "source": "/(.*)\\.(png|svg|ico|jpg)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }] },
+    { "source": "/de-words.txt", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000" }] }
   ]
 }

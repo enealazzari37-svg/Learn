@@ -22,7 +22,9 @@ const HB = {
 };
 const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = null;
 const HOME_TPL = {
-  std: { n: "Standard", d: "Uhr, Zuletzt, Kalender, Fokus, Prüfungen, Aufgaben, Noten", l: [["clock", 1, 1, 2, 1], ["rec", 1, 2, 2, 1], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2], ["grades", 5, 3, 2, 2]] },
+  std: { n: "Standard", d: "Uhr, Zuletzt, Kalender, Noten, Prüfungen, Aufgaben", l: [["clock", 1, 1, 2, 1], ["rec", 1, 2, 2, 1], ["cal", 3, 1, 2, 2], ["grades", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["tasks", 3, 3, 4, 2]] },
+  /* früherer Standard: wer ihn nie verändert hat, bekommt automatisch den neuen */
+  _old: { n: "", d: "", l: [["clock", 1, 1, 2, 1], ["rec", 1, 2, 2, 1], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2], ["grades", 5, 3, 2, 2]] },
   classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
   focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
   plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["ex", 4, 3, 3, 1], ["cards", 4, 4, 1, 1]] },
@@ -56,7 +58,9 @@ function homeFree(L, w, h) {
 }
 const homeFromTpl = k => HOME_TPL[k].l.map(([type, c, r, w, h]) => ({ id: homeUid(), type, c, r, w, h }));
 function homeLayout() {
-  const raw = Array.isArray(D.profile.home) ? D.profile.home : [], seen = new Set(), L = [];
+  let raw = Array.isArray(D.profile.home) ? D.profile.home : [];
+  const sig = a => JSON.stringify(a.map(b => [b.type, b.c, b.r, b.w, b.h]).sort()); if (raw.length && sig(raw) === sig(HOME_TPL._old.l.map(([type, c, r, w, h]) => ({ type, c, r, w, h })))) raw = [];   // unveränderter alter Standard → neuer Standard
+  const seen = new Set(), L = [];
   for (const b of raw) { if (!b || !HB[b.type] || seen.has(b.type)) continue; seen.add(b.type); const x = { id: b.id || homeUid(), type: b.type, w: b.w, h: b.h, c: b.c, r: b.r }; homeClamp({ ...x, c: 1, r: 1 }); x.w = Math.max(HB[b.type].mw || 1, Math.min(HOME_COLS, x.w | 0 || HB[b.type].w)); x.h = Math.max(HB[b.type].mh || 1, Math.min(HOME_ROWS, x.h | 0 || HB[b.type].h)); if (!x.c || !x.r) { const f = homeFree(L, x.w, x.h); x.c = f.c; x.r = f.r; } L.push(x); }
   if (!L.length) return homeFromTpl("std");
   return homeResolve(L);
@@ -81,7 +85,7 @@ function homeEditor() {
   const bind = () => {
     $("#hd-d", root).onclick = () => { commit(); close(); toast("Startseite gespeichert"); };
     $("#hd-r", root).onclick = () => { L = homeFromTpl("std"); commit(); draw(); };
-    $("#hd-t", root).onclick = e => menu(e.currentTarget, Object.entries(HOME_TPL).map(([k, t]) => ({ label: t.n + " – " + t.d, icon: "table", fn: () => { L = homeFromTpl(k); commit(); draw(); } })));
+    $("#hd-t", root).onclick = e => menu(e.currentTarget, Object.entries(HOME_TPL).filter(([k]) => k !== "_old").map(([k, t]) => ({ label: t.n + " – " + t.d, icon: "table", fn: () => { L = homeFromTpl(k); commit(); draw(); } })));
     $("#hd-a", root).onclick = e => { const free = Object.keys(HB).filter(t => !used().has(t)); if (!free.length) return toast("Alle Blöcke sind schon auf der Startseite"); menu(e.currentTarget, free.map(t => ({ label: HB[t].n + " – " + HB[t].d, icon: HB[t].i, fn: () => { const f = homeFree(L, HB[t].w, HB[t].h); L.push({ id: homeUid(), type: t, c: f.c, r: f.r, w: HB[t].w, h: HB[t].h }); homeResolve(L); commit(); draw(); } }))); };
     $$("[data-rm]", root).forEach(b => b.onclick = () => { L = L.filter(x => x.id !== b.dataset.rm); commit(); draw(); });
     $$("[data-sw]", root).forEach(b => b.onclick = () => { const cur = L.find(x => x.id === b.dataset.sw), items = Object.keys(HB).filter(t => !used().has(t)).map(t => ({ label: HB[t].n + " – " + HB[t].d, icon: HB[t].i, fn: () => { cur.type = t; homeClamp(cur); homeResolve(L, cur.id); commit(); draw(); } })); if (!items.length) return toast("Alle anderen Blöcke sind schon in Benutzung"); menu(b, items); });
