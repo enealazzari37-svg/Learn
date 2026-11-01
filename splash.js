@@ -20,14 +20,14 @@
   async function play() {
     var w = 0;
     if (!reduce) {   // nur Logo (mit kurzer Animation), danach klappt der Schriftzug aus
-      A(logo, [{ opacity: 0, transform: "scale(.6) rotate(-8deg)" }, { opacity: 1, transform: "scale(1.06) rotate(0)", offset: .7 }, { opacity: 1, transform: "scale(1)" }], { duration: 560, easing: ease });
-      await wait(520);
+      A(logo, [{ opacity: 0, transform: "scale(.6) rotate(-8deg)" }, { opacity: 1, transform: "scale(1.06) rotate(0)", offset: .7 }, { opacity: 1, transform: "scale(1)" }], { duration: 800, easing: ease });
+      await wait(800);
     } else A(logo, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: "ease" });
     if (done) return;
     w = word.scrollWidth + 14; var spans = word.children;
-    A(word, [{ maxWidth: "0px" }, { maxWidth: w + "px" }], { duration: reduce ? 1 : 620, easing: "cubic-bezier(.3,.8,.2,1)" });
-    for (var i = 0; i < spans.length; i++) A(spans[i], [{ opacity: 0, transform: "translateX(-18px)", filter: "blur(6px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }], { duration: reduce ? 1 : 460, delay: reduce ? 0 : 120 + i * 70, easing: ease });
-    await wait(reduce ? 500 : 1100);
+    A(word, [{ maxWidth: "0px" }, { maxWidth: w + "px" }], { duration: reduce ? 1 : 900, easing: "cubic-bezier(.3,.8,.2,1)" });
+    for (var i = 0; i < spans.length; i++) A(spans[i], [{ opacity: 0, transform: "translateX(-18px)", filter: "blur(6px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }], { duration: reduce ? 1 : 640, delay: reduce ? 0 : 150 + i * 100, easing: ease });
+    await wait(reduce ? 500 : 1500);
     var t0 = Date.now(); while (!loaded && Date.now() - t0 < 4000 && !done) await wait(80);
     finish();
   }
