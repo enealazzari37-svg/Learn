@@ -18,7 +18,7 @@ function route() {
   if (EMBED && !h.startsWith("app")) { location.hash = "#/app/today"; return; }
   if (!h.startsWith("app") || (!EMBED && cloudGate())) document.getElementById("hdock")?.remove();   // Chat-Leiste der Startseite nicht auf Landing/Login stehen lassen
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = LPL.title(); if (!landingEl.dataset.r) renderLanding(); LPL.sync(); window.scrollTo(0, 0); return; }
-  landingEl.hidden = true; appEl.hidden = false; document.title = "Studix"; LPL.sync();
+  landingEl.hidden = true; appEl.hidden = false; document.title = "Studix"; LPL.mount();
   if (!EMBED && cloudGate()) return authScreen();
   if (!EMBED && !D.profile.onboarded && !onboardShown) { onboardShown = true; buildShell(); renderView(); onboarding(); return; }
   renderView();
