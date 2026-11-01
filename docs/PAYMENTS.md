@@ -28,7 +28,7 @@ Das Abo wird dem Konto über `metadata.user_id` zugeordnet (Stripe-Suche), mit F
 Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in Stripe kann gelöscht werden.
 
 ## Studix Essential (günstiger Tarif)
-Dritte Stufe zwischen Gratis und Pro: **3 CHF pro Monat oder 20 CHF pro Jahr**, halb so viel Studix AI wie Pro (60 000 Token pro Woche, 12 000 pro 5 Std.), unbegrenzt Dokumente und Whiteboards, längere Antworten –
+Dritte Stufe zwischen Gratis und Pro: **3.99 pro Monat oder 20 pro Jahr (je Währung)**, halb so viel Studix AI wie Pro (60 000 Token pro Woche, 12 000 pro 5 Std.), unbegrenzt Dokumente und Whiteboards, längere Antworten –
 aber **ohne Bild-Analyse und Sprachgespräch** (die bleiben Pro) und ohne Testversion. Wechsel Essential ↔ Pro geht direkt in der App (Einstellungen → Pro), der Preisunterschied wird anteilig abgerechnet.
 
 Einrichtung: In Stripe ein **zweites Produkt „Studix Essential“** mit demselben Produktsteuercode wie Pro anlegen (der Preis wird aus `ESSENTIAL_MONTHLY_CENTS` gebildet, ein Stripe-Preis ist nicht nötig).
@@ -44,10 +44,10 @@ Ohne dieses Produkt bleibt Essential unsichtbar und es gibt nur Gratis und Pro. 
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
-| `PRO_MONTHLY_CENTS` | Monatspreis von Pro in Rappen/Cent, in jeder Währung (Standard `600` = 6). Überschreibt die Stripe-Preise |
+| `PRO_MONTHLY_CENTS` | Monatspreis von Pro in Rappen/Cent, in jeder Währung (Standard `699` = 6.99). Überschreibt die Stripe-Preise |
 | `PRO_YEARLY_CENTS` | Jahrespreis von Pro in Rappen/Cent (Standard `4000` = 40). Alternativ `PRO_YEARLY_DISCOUNT` (Rabatt in % auf 12 Monate), dann wird er daraus berechnet |
 | `STRIPE_ESSENTIAL_PRODUCT_ID` | optional, falls das Produkt nicht „Studix Essential“ heißt |
-| `ESSENTIAL_MONTHLY_CENTS` / `ESSENTIAL_YEARLY_CENTS` | Preise von **Studix Essential** in Rappen/Cent, in jeder Währung (Standard `300` = 3 und `2000` = 20 pro Jahr) |
+| `ESSENTIAL_MONTHLY_CENTS` / `ESSENTIAL_YEARLY_CENTS` | Preise von **Studix Essential** in Rappen/Cent, in jeder Währung (Standard `399` = 3.99 und `2000` = 20 pro Jahr) |
 | `AI_ESSENTIAL_WINDOW_TOKENS` / `AI_ESSENTIAL_SESSION_TOKENS` | KI-Token von Essential pro Woche / pro 5 Std. (Standard `60000` / `12000`, also die Hälfte von Pro) |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
 | `AI_FREE_WINDOW_TOKENS` | KI-Token pro Woche für Gratis-Konten (Standard `12500` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |

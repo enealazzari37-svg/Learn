@@ -91,6 +91,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   btn.onclick = () => {
     if (teamLocked()) return teamUpsell("Das gemeinsame Bearbeiten von Dateien in Echtzeit");
     if (!CLOUD.user) { const { el, close } = modal(`<h3>Zusammenarbeiten</h3><p class="note">Zum gemeinsamen Schreiben melde dich zuerst an – dann kannst du Notizen per Link teilen.</p><div class="row end"><button class="btn primary" id="co-login">Anmelden</button></div>`); $("#co-login", el).onclick = () => { close(); cloudLoginModal(); }; return; }
+    if (!d.share && typeof freePlan === "function" && freePlan()) return proUpsell("Gemeinsam an einer Notiz schreiben – live, mit Textfeldern und Zeichnungen – gibt es mit Studix Essential und Pro. Mitschreiben, wenn dich jemand einlädt, geht auch gratis.", "Gemeinsam schreiben");
     const { el, close } = modal(`<h3>Zusammenarbeiten</h3><div id="co-body"></div>`), box = $("#co-body", el);
     const draw = () => {
       if (!d.share) { box.innerHTML = `<p class="note">Teile diese Notiz per Link. Wer den Link hat und angemeldet ist, schreibt live mit – Texte, Textfelder und Zeichnungen. Die Teilnehmenden erscheinen oben neben den drei Punkten.</p><div class="row end"><button class="btn primary" id="co-go">Zusammenarbeit starten</button></div>`;

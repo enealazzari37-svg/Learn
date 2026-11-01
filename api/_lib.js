@@ -30,7 +30,7 @@ async function plans() {
         out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids, product: list[0].product.id }; out.currency = list[0].currency;
       }
       /* Preise: Monat = Stripe-Preis des Produkts (optional PRO_MONTHLY_CENTS überschreibt); Jahr = 12 Monate minus 40 % Rabatt (PRO_YEARLY_DISCOUNT), sofern in Stripe kein eigener Jahrespreis existiert */
-      const mc = +process.env.PRO_MONTHLY_CENTS || 600;   // Pro: 6 pro Monat (PRO_MONTHLY_CENTS überschreibt; die Stripe-Preise des Produkts werden nur noch als Produkt genutzt)
+      const mc = +process.env.PRO_MONTHLY_CENTS || 699;   // Pro: 6.99 pro Monat (PRO_MONTHLY_CENTS überschreibt; die Stripe-Preise des Produkts werden nur noch als Produkt genutzt)
       if (mc && out.monthly.product && Object.keys(out.monthly.opts || {}).length) { Object.keys(out.monthly.opts).forEach(c => { out.monthly.opts[c] = mc; }); out.monthly.cents = mc; }
       /* Jahr: Pro 40 pro Jahr (PRO_YEARLY_CENTS); nur wenn PRO_YEARLY_DISCOUNT gesetzt ist, wird er stattdessen aus 12 Monaten minus Rabatt berechnet */
       const yEnv = +process.env.PRO_YEARLY_CENTS || (process.env.PRO_YEARLY_DISCOUNT ? 0 : 4000);
@@ -42,14 +42,14 @@ async function plans() {
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
-  /* Studix Essential: günstigerer Tarif (Standard 3.00 je Währung) mit halbem KI-Budget. Braucht ein Produkt „Studix Essential“ in Stripe (oder STRIPE_ESSENTIAL_PRODUCT_ID); der Preis kommt aus ESSENTIAL_MONTHLY_CENTS */
+  /* Studix Essential: günstigerer Tarif (Standard 3.99 je Währung) mit halbem KI-Budget. Braucht ein Produkt „Studix Essential“ in Stripe (oder STRIPE_ESSENTIAL_PRODUCT_ID); der Preis kommt aus ESSENTIAL_MONTHLY_CENTS */
   out.essential = { price: "", opts: {} }; out.essentialYearly = { price: "", opts: {} };
   if (stripeKey() && (out.monthly.price || out.yearly.price)) {
     try {
       let ep = process.env.STRIPE_ESSENTIAL_PRODUCT_ID || "";
       if (!ep) ep = ((await stripe("GET", "/products", { active: "true", limit: 100 })).data || []).find(p => /(lumi|studix)\s*(study\s*)?essential/i.test(p.name || ""))?.id || "";
-      const ec = +process.env.ESSENTIAL_MONTHLY_CENTS || 300, cur = Object.keys(out.monthly.opts || {}); if (!cur.length) cur.push(out.currency || "chf");
-      const ey = +process.env.ESSENTIAL_YEARLY_CENTS || 2000;   // Essential: 3 pro Monat, 20 pro Jahr
+      const ec = +process.env.ESSENTIAL_MONTHLY_CENTS || 399, cur = Object.keys(out.monthly.opts || {}); if (!cur.length) cur.push(out.currency || "chf");
+      const ey = +process.env.ESSENTIAL_YEARLY_CENTS || 2000;   // Essential: 3.99 pro Monat, 20 pro Jahr
       if (ep) { out.essential = { price: "dyn", product: ep, cents: ec, opts: Object.fromEntries(cur.map(c => [c, ec])) }; out.essentialYearly = { price: "dyn", product: ep, cents: ey, opts: Object.fromEntries(cur.map(c => [c, ey])) }; }
     } catch (e) { if (priceCache.v?.essential) { out.essential = priceCache.v.essential; out.essentialYearly = priceCache.v.essentialYearly || out.essentialYearly; } }
   }
@@ -168,12 +168,12 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
   }
   subCache.set(uid, { at: Date.now(), v }); return v;
 }
-/* Early-Backer-Geschenk: steht in app_metadata des Kontos (nur mit dem Service-Key schreibbar) → { until: ISO, badge } oder null */
+/* Geschenk-Pro: Early-Backer (pro_until + Abzeichen) und Einladungs-Monate (ref_pro_until) stehen in app_metadata des Kontos (nur mit dem Service-Key schreibbar) → { until: ISO, badge } oder null */
 const grantCache = new Map();
 async function grantOf(uid) {
   const c = grantCache.get(uid); if (c && Date.now() - c.at < 20000) return c.v;
   let v = null; const key = SB_SERVICE();
-  if (key) { try { const r = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { headers: { apikey: key, authorization: "Bearer " + key } }); const m = r.ok ? (await r.json()).app_metadata || {} : {}; if (m.early_backer) v = { until: m.pro_until || null, badge: "early_backer" }; } catch {} }
+  if (key) { try { const r = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { headers: { apikey: key, authorization: "Bearer " + key } }); const m = r.ok ? (await r.json()).app_metadata || {} : {}; const u = [m.early_backer ? m.pro_until : null, m.ref_pro_until].filter(Boolean).sort().pop(); if (u) v = { until: u, badge: m.early_backer ? "early_backer" : null }; } catch {} }
   grantCache.set(uid, { at: Date.now(), v }); return v;
 }
 const grantActive = g => !!g && !!g.until && new Date(g.until).getTime() > Date.now();
@@ -185,6 +185,32 @@ const tierOf = async uid => {
   return "free";
 };
 const isProLive = async uid => (await tierOf(uid)) !== "free";
+/* ===== Freunde einladen: 1 Monat Pro geschenkt + Guthaben (supabase/referrals.sql) ===== */
+const adminHeaders = key => ({ apikey: key, authorization: "Bearer " + key, "content-type": "application/json" });
+/* Verlängert das geschenkte Pro um einen Monat (ab jetzt oder ab Ende des laufenden Geschenks) → neues Ende als ISO */
+async function giftMonth(uid) {
+  const key = SB_SERVICE(); if (!key) return null;
+  const r0 = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { headers: adminHeaders(key) }), m = r0.ok ? (await r0.json()).app_metadata || {} : {};
+  const from = Math.max(Date.now(), m.ref_pro_until ? new Date(m.ref_pro_until).getTime() : 0), d = new Date(from); d.setMonth(d.getMonth() + 1);
+  const r = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { method: "PUT", headers: adminHeaders(key), body: JSON.stringify({ app_metadata: { ref_pro_until: d.toISOString() } }) });
+  if (!r.ok) throw Object.assign(new Error("Konnte das Geschenk nicht speichern."), { status: 502 });
+  dropGrantCache(uid); dropSubCache(uid); return d.toISOString();
+}
+/* Offenes Guthaben (Einladungen) beim Stripe-Kunden gutschreiben – wird bei der nächsten Rechnung verrechnet. → Cent, die gutgeschrieben wurden */
+async function applyCredits(uid, customer, currency) {
+  if (!customer || !currency || !stripeKey()) return 0;
+  let cents = 0; try { cents = +(await sb("POST", "rpc/lumi_credit_take", { p_user: uid })) || 0; } catch { return 0; }
+  if (!cents) return 0;
+  try { await stripe("POST", `/customers/${customer}/balance_transactions`, { amount: -cents, currency: String(currency).toLowerCase(), description: "Studix: Einladungs-Guthaben" }); return cents; }
+  catch { try { await sb("POST", "rpc/lumi_credit_giveback", { p_user: uid, p_cents: cents }); } catch {} return 0; }
+}
+const pendingCredit = async uid => { try { return +((await sb("POST", "rpc/lumi_ref_stats", { p_user: uid }))?.pending_cents) || 0; } catch { return 0; } };
+/* Darf dieses Konto Freunde einladen? Nur mit bezahltem Essential/Pro (oder Early-Backer-Geschenk) – nicht mit einem Einladungs-Monat */
+async function canInvite(uid) {
+  try { const s = await liveSubscription(uid); if (s && ACTIVE.includes(s.status)) return true; } catch {}
+  const g = await grantOf(uid); return !!g && g.badge === "early_backer" && grantActive(g);
+}
+
 /* Kunden-ID nur verwenden, wenn der Kunde bei Stripe (in diesem Modus) noch existiert – sonst „No such customer“ */
 const validCustomer = async id => { if (!id) return null; try { const c = await stripe("GET", "/customers/" + id); return c && !c.deleted ? id : null; } catch { return null; } };
 const dropSubCache = uid => subCache.delete(uid);
@@ -246,4 +272,4 @@ async function proFeatureDeny(acct, feature) {
   try { if (!(await billingReady())) return null; } catch { return null; }
   return [402, { error: `${feature} ist mit Studix Study Pro verfügbar.`, pro: true }];
 }
-module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, tierOf, ESS_TOKENS, ESS_S, grantOf, grantActive, dropGrantCache, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { giftMonth, applyCredits, pendingCredit, canInvite, proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, tierOf, ESS_TOKENS, ESS_S, grantOf, grantActive, dropGrantCache, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

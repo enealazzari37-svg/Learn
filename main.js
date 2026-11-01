@@ -11,6 +11,7 @@ function renderView() {
   buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); if (!dock) window.__dockFresh = false; refreshNav(); timerPaint(); try { mobileChrome(); } catch {}
   const m = $("#main"); m.className = "main"; m.removeAttribute("style"); window.scrollTo(0, 0); m.scrollTop = 0; setScroller(m);
   $("#cpanel") && curView === "ai" && ($("#cpanel").hidden = true);
+  if (curView === "today" && !EMBED) setTimeout(() => { try { streakNudge(); } catch {} }, 2500);
   try { const r = V[curView](m, x, y); if (r?.catch) r.catch(e => console.error(e)); } catch (e) { console.error(e); m.innerHTML = `<div class="page"><div class="emptybox"><h3>Ups, da ist etwas schiefgelaufen</h3><p>${esc(e.message)}</p><button class="btn" data-go="today">Zur Startseite</button></div></div>`; bindCommon(m); }
 }
 function route() {
@@ -19,7 +20,7 @@ function route() {
   if (!h.startsWith("app") || (!EMBED && cloudGate())) document.getElementById("hdock")?.remove();   // Chat-Leiste der Startseite nicht auf Landing/Login stehen lassen
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = LPL.title(); if (!landingEl.dataset.r) renderLanding(); LPL.sync(); window.scrollTo(0, 0); return; }
   landingEl.hidden = true; appEl.hidden = false; document.title = "Studix"; LPL.mount();
-  if (!EMBED && cloudGate()) return authScreen();
+  if (!EMBED && cloudGate()) return authScreen(pendingRef() ? "up" : "in");
   if (!EMBED && !D.profile.onboarded && !onboardShown) { onboardShown = true; buildShell(); renderView(); onboarding(); return; }
   renderView();
 }

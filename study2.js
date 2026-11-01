@@ -551,6 +551,7 @@ V.settings = m => {
     </div>
   </div>
   <div class="panel aiuse" id="aiuse" hidden></div>
+  ${cloudOn() && BILL.cfg && BILL.cfg.enabled ? `<div class="sthome setfull"><span class="sth-i">${ic("gift")}</span><div><b>Freunde einladen</b><small>Ihr bekommt beide 1 Monat Pro und ${money(200)} Guthaben – mit Essential und Pro.</small></div><button class="btn ghost small" type="button" data-invite>Einladen</button></div>` : ""}
   <div class="sthome setfull"><span class="sth-i">${ic("table")}</span><div><b>Startseite</b><small>Blöcke ersetzen, verschieben und in der Größe ändern – mit Vorlagen.</small></div><button class="btn ghost small" id="hed-open" type="button">${ic("pen")}Bearbeiten</button></div>
   ${CLOUD.user ? `<div class="accbot"><button class="btn ghost" id="set-out" type="button">${ic("logout")}Abmelden</button><button class="btn danger-o" id="set-del" type="button">${ic("trash")}Konto löschen</button></div>` : ""}
   </div><div class="setsec" data-s="ai">

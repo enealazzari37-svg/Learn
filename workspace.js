@@ -36,7 +36,7 @@ async function wsHome(m) {
     $$("[data-w]", box).forEach(b => b.onclick = () => go("workspace/" + b.dataset.w));
     $("#ws-new2", box)?.addEventListener("click", wsNew); $("#ws-join2", box)?.addEventListener("click", wsJoin);
   };
-  const wsNew = async () => { const n = await ask("Neuer Workspace", { placeholder: "z. B. Lerngruppe Mathe", ok: "Erstellen" }); if (!n || !n.trim()) return; try { const id = await wsRpc("lumi_ws_create", { p_name: n.trim(), p_who: wsWho() }); go("workspace/" + id); } catch (e) { toast(wsMsg(e)); } };
+  const wsNew = async () => { if (freePlan()) return proUpsell("Eigene Workspaces für Lerngruppen gibt es mit Studix Essential und Pro. Einem Workspace beitreten kannst du auch gratis.", "Workspace erstellen"); const n = await ask("Neuer Workspace", { placeholder: "z. B. Lerngruppe Mathe", ok: "Erstellen" }); if (!n || !n.trim()) return; try { const id = await wsRpc("lumi_ws_create", { p_name: n.trim(), p_who: wsWho() }); go("workspace/" + id); } catch (e) { toast(wsMsg(e)); } };
   const wsJoin = async () => { const c = await ask("Mit Code beitreten", { placeholder: "Einladungscode", ok: "Beitreten" }); if (!c || !c.trim()) return; const code = (c.trim().match(/[0-9a-f]{10}/i) || [c.trim()])[0]; try { const id = await wsRpc("lumi_ws_join", { p_code: code, p_who: wsWho() }); toast("Du bist dem Workspace beigetreten"); go("workspace/" + id); } catch (e) { toast(wsMsg(e)); } };
   $("#ws-new", m).onclick = wsNew; $("#ws-join", m).onclick = wsJoin;
   await draw();

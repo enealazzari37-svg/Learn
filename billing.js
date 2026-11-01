@@ -102,10 +102,52 @@ function planCompareHtml() {
   return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h${ess ? " c3" : ""}" role="row"><span></span><b>Gratis</b>${ess ? "<b>Essential</b>" : ""}<b>Pro</b></div>${rows.map(([t, ...v]) => `<div class="pc-r${ess ? " c3" : ""}" role="row"><span>${t}</span>${v.map(x => `<span>${x}</span>`).join("")}</div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Flash 1×, Groq 0,5×.</p></div>`;
 }
 /* Popup, wenn ein Gratis-Limit erreicht ist oder eine Pro-Funktion genutzt wird */
-function proUpsell(msg) {
-  const { el, close } = modal(`<h3>Mehr mit Studix Study Pro</h3><p class="note">${esc(msg || "Diese Funktion gibt es mit Studix Study Pro.")}</p><ul class="prolist">${proFeatures().map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul><div class="row end"><button class="btn ghost" data-c>Später</button><button class="btn primary" id="up-go">Pro ansehen</button></div>`);
+function proUpsell(msg, title) {
+  const { el, close } = modal(`<h3>${esc(title || "Mehr mit Studix Study Pro")}</h3><p class="note">${esc(msg || "Diese Funktion gibt es mit Studix Study Pro.")}</p><ul class="prolist">${proFeatures().map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul><div class="row end"><button class="btn ghost" data-c>Später</button><button class="btn primary" id="up-go">Pläne ansehen</button></div>`);
   $("[data-c]", el).onclick = close; $("#up-go", el).onclick = () => { close(); window.__setTab = "pro"; go("settings"); };
 }
+/* Upgrade-Hinweis genau dann, wenn der Mehrwert spürbar ist (50. Karteikarte, Lernserie, Teilen, KI-Limit) – nie beim Login.
+   Nur für Gratis-Konten, jede Art höchstens einmal und insgesamt höchstens einmal pro Tag. */
+function proNudge(kind, title, msg) {
+  if (!freePlan() || !CLOUD.user || document.querySelector("#modal-root .mask")) return false;
+  let st = {}; try { st = JSON.parse(localStorage.getItem("studix-nudge") || "{}"); } catch {}
+  if (st[kind] || (st._last && Date.now() - st._last < 864e5)) return false;
+  st[kind] = st._last = Date.now(); try { localStorage.setItem("studix-nudge", JSON.stringify(st)); } catch {}
+  proUpsell(msg, title); return true;
+}
+/* Lernserie erreicht (3 / 7 / 14 Tage): beim Öffnen des Dashboards */
+function streakNudge() {
+  if (EMBED_MODE) return; const n = typeof streak === "function" ? streak() : 0, t = n >= 14 ? 14 : n >= 7 ? 7 : n >= 3 ? 3 : 0; if (!t) return;
+  proNudge("streak" + t, `${n} Tage in Folge – starke Serie! 🔥`, "Du bleibst dran. Mit Essential oder Pro bekommst du mehr Studix AI, um dein Lernen noch schneller zu machen.");
+}
+/* ===== Freunde einladen: beide bekommen 1 Monat Pro + 2 Guthaben (nur mit Essential/Pro; im Gratis-Konto ausgegraut) ===== */
+async function inviteModal() {
+  if (!CLOUD.user) { toast("Melde dich an, um Freunde einzuladen."); return cloudLoginModal(); }
+  const perk = `<div class="inv-perk"><span>${ic("gift")}</span><div><b>Ihr bekommt beide:</b><ul><li>1 Monat Studix Study Pro geschenkt</li><li>${money(200)} Guthaben auf die nächste Zahlung</li></ul></div></div>`;
+  const { el, close } = modal(`<h3>Freunde einladen</h3><div id="inv-body"><p class="note">Lädt …</p></div>`, "invmodal"), box = $("#inv-body", el);
+  const locked = (pend) => {
+    box.innerHTML = `<div class="inv-lock">${perk}<div class="inv-off" aria-disabled="true"><div class="co-link"><input class="field" readonly value="studix.space/?ref=XXXXXXXX" disabled><button class="btn" disabled>Kopieren</button></div></div>
+      <p class="inv-note"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="3"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg></span>Freunde einladen geht nur mit Essential und Pro.</p>${pend ? `<p class="note">Dein Guthaben von ${money(pend)} wird bei deiner ersten Zahlung verrechnet.</p>` : ""}
+      <div class="row end"><button class="btn ghost" data-c>Schließen</button><button class="btn primary" id="inv-up">Pläne ansehen</button></div></div>`;
+    $("[data-c]", box).onclick = close; $("#inv-up", box).onclick = () => { close(); window.__setTab = "pro"; go("settings"); };
+  };
+  if (freePlan()) { locked(0); }
+  try {
+    const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "ref_info" }) }), j = await r.json().catch(() => ({}));
+    if (!r.ok) { if (!freePlan()) box.innerHTML = `<p class="note">${esc(j.error || "Einladungen sind gerade nicht verfügbar.")}</p><div class="row end"><button class="btn primary" data-c>Schließen</button></div>`, $("[data-c]", box).onclick = close; return; }
+    if (j.locked) return locked(j.pending_cents);
+    const left = Math.max(0, (j.max || 12) - (j.invited || 0));
+    box.innerHTML = `${perk}<p class="note">Teile deinen Link oder Code. Sobald sich dein Freund neu registriert und den Code einlöst, bekommt ihr beide das Geschenk.</p>
+      <div class="co-link"><input class="field" readonly value="${esc(j.link)}" id="inv-l"><button class="btn primary" id="inv-cp">Kopieren</button></div>
+      <div class="inv-code"><small>Dein Code</small><b>${esc(j.code)}</b></div>${navigator.share ? `<button class="btn ghost small" id="inv-sh" type="button">Teilen …</button>` : ""}
+      <p class="inv-stat"><b>${j.invited || 0}</b> eingeladen · noch ${left} möglich${j.pending_cents ? ` · Guthaben ${money(j.pending_cents)} wird bei der nächsten Zahlung verrechnet` : ""}</p>
+      <div class="row end"><button class="btn ghost" data-c>Schließen</button></div>`;
+    $("[data-c]", box).onclick = close;
+    $("#inv-cp", box).onclick = async () => { try { await navigator.clipboard.writeText(j.link); toast("Link kopiert"); } catch { $("#inv-l", box).select(); } };
+    $("#inv-sh", box)?.addEventListener("click", () => navigator.share({ title: "Studix", text: "Komm zu Studix – wir bekommen beide 1 Monat Pro geschenkt:", url: j.link }).catch(() => {}));
+  } catch { if (!freePlan()) { box.innerHTML = `<p class="note">Keine Verbindung. Versuche es noch einmal.</p>`; } }
+}
+document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-invite]")) { e.preventDefault(); inviteModal(); } });
 /* Link „Was ist inbegriffen?“ unter der Beschreibung – öffnet die Tabelle als Popup */
 const planCompareLink = () => `<button type="button" class="pc-link" data-pc>Was ist inbegriffen?</button>`;
 document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-pc]")) { e.preventDefault(); modal(planCompareHtml(), "pcmodal"); } });

@@ -181,6 +181,9 @@ const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Einladungs-/Early-Access-Code: optional beim Registrieren. Kein Zugangscode mehr nötig, um die App zu nutzen.
    Der Code wird beim Registrieren gemerkt und nach der ersten Anmeldung (E-Mail ist dann bestätigt) einmalig eingelöst. */
 const RC_KEY = "studix-refcode", rcDoneKey = () => "studix-rc-done-" + (CLOUD.user?.id || "");
+/* Einladungslink …/?ref=CODE: Code merken (wird beim Registrieren eingetragen und nach der Anmeldung eingelöst) */
+try { const rf = new URLSearchParams(location.search).get("ref"); if (rf && /^[A-Za-z0-9]{8}$/.test(rf)) { localStorage.setItem(RC_KEY, rf.toUpperCase()); const u = new URL(location.href); u.searchParams.delete("ref"); history.replaceState(null, "", u.pathname + u.search + u.hash); } } catch {}
+const pendingRef = () => { try { return localStorage.getItem(RC_KEY) || ""; } catch { return ""; } };
 async function accessCheck() {
   if (!CLOUD.user) return;
   let code = ""; try { if (localStorage.getItem(rcDoneKey()) === "1") return; code = localStorage.getItem(RC_KEY) || CLOUD.user.user_metadata?.ref_code || ""; } catch {}
@@ -189,7 +192,7 @@ async function accessCheck() {
     const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code }) }), j = await r.json().catch(() => ({}));
     if (r.status === 401 || r.status >= 500) return;   // später nochmal versuchen
     try { localStorage.setItem(rcDoneKey(), "1"); localStorage.removeItem(RC_KEY); } catch {}
-    if (r.ok) { if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} }
+    if (r.ok) { if (j.referral) toast("Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉"); else if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} }
     else toast(j.error || "Dieser Code ist ungültig.");
   } catch {}
 }
@@ -200,7 +203,7 @@ function authScreen(mode = "in") {
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
-        ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>` : ""}
+        ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" value="${esc(pendingRef())}" style="letter-spacing:.12em;text-transform:uppercase"></div><p class="note" style="margin:6px 2px 0">Von einem Freund eingeladen? Ihr bekommt beide 1 Monat Pro und Guthaben.</p>` : ""}
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? `<svg width="18" height="18" viewBox="0 0 48 48" style="margin-right:10px"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 019.5 24c0-1.6.3-3.2.9-4.7l-7.8-6.1A24 24 0 000 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Mit Google fortfahren` : "Mit Apple fortfahren"}</button>`).join("")}</div>` : ""}

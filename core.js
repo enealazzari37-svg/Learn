@@ -349,11 +349,16 @@ function demoData() {
 }
 
 let _st;
-function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }
+/* Upgrade-Hinweis nach der 50. Karteikarte (genau dann, wenn man Studix am meisten nutzt) */
+let _cardsPrev = -1;
+const cardCount = () => { try { return D.decks.reduce((a, d) => a + (d.cards ? d.cards.length : 0), 0); } catch { return 0; } };
+function cardNudge() { const n = cardCount(), p = _cardsPrev; _cardsPrev = n; if (p >= 0 && p < 50 && n >= 50 && typeof proNudge === "function") setTimeout(() => proNudge("cards50", "50 Karteikarten – stark!", "Du lernst richtig konsequent. Mit Essential oder Pro lässt Studix AI Karteikarten und Quiz automatisch aus deinen Notizen entstehen."), 900); }
+function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); try { cardNudge(); } catch {} }
 async function loadData() {
   if (EMBED_MODE) { D = demoData(); return; }
   const d = (await KV.get("data")) || {}; const base = DEFAULT();
   D = Object.assign(base, d); D.profile = Object.assign(base.profile, d.profile || {}); D.stats = Object.assign(base.stats, d.stats || {});
+  _cardsPrev = cardCount();
   /* Fächer behalten ihre Farbe; wer durch die kurze Neutral-Phase schwarz wurde, bekommt wieder eine Farbe */
   (D.subjects || []).forEach((s, i) => { if (!s.color || s.color === "#0f0f12") s.color = COLORS[i % COLORS.length]; }); (D.folders || []).forEach(f => { const sj = f.subjectId && (D.subjects || []).find(x => x.id === f.subjectId); if (sj && (!f.color || f.color === "#0f0f12")) f.color = sj.color; });
 }
@@ -373,7 +378,7 @@ let serverAI = false, serverInfo = null;
 /* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
 const AIQ = { free: 12500, ess: 60000, pro: 120000, freeS: 2500, essS: 12000, proS: 24000, hours: 168 };
 /* Weitere Gratis-Limits (gelten nur, solange man Pro kaufen kann): Dokumente, Whiteboards. Bild-Analyse und Sprache sind serverseitig nur für Pro. */
-const FREE_LIMITS = { docs: 100, boards: 10 };
+const FREE_LIMITS = { docs: 50, boards: 10 };
 const freePlan = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && !isPlus(); } catch { return false; } };
 function limitHit(kind) {
   if (!freePlan()) return false;
@@ -412,7 +417,7 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
       const j = await r.json().catch(() => ({}));
       if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
       if (r.status === 402 && j.pro) { window.lastAiIssue = { kind: "pro", title: "Study Pro nötig", text: j.error || "Diese Funktion gehört zu Study Pro." }; if (!quiet && typeof proUpsell === "function") proUpsell(j.error); return null; }
-      if (!r.ok) { const msg = r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || String(r.status)); window.lastAiIssue = r.status === 429 ? { kind: "limit", title: j.limit ? "Limit erreicht" : "Gerade viel los", text: msg } : { kind: "error", title: "Studix AI konnte nicht antworten", text: msg }; throw new Error(msg); }
+      if (!r.ok) { const msg = r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || String(r.status)); window.lastAiIssue = r.status === 429 ? { kind: "limit", title: j.limit ? "Limit erreicht" : "Gerade viel los", text: msg } : { kind: "error", title: "Studix AI konnte nicht antworten", text: msg }; if (r.status === 429 && j.limit && !quiet && typeof proNudge === "function") setTimeout(() => proNudge("ai_limit", "Du nutzt Studix AI richtig viel", "Dein kostenloses Studix-AI-Limit ist aufgebraucht. Mit Essential oder Pro bekommst du deutlich mehr."), 700); throw new Error(msg); }
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
     } catch (e) { if (!window.lastAiIssue) window.lastAiIssue = { kind: "error", title: "Studix AI nicht erreichbar", text: String(e.message || e) }; if (!quiet) toast("Studix-AI-Fehler: " + e.message); return null; }

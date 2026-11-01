@@ -59,7 +59,7 @@ function welcomeSplash(name, canBuy) {
     <h1>Alles bereit${first ? ", " + esc(first) : ""}.</h1><p class="wsp-s">Dein Studix ist eingerichtet. Das ist in deinem Gratis-Konto enthalten:</p>
     <div class="wsp-card"><div class="wsp-row"><span class="wsp-ring"><svg viewBox="0 0 24 24" width="30" height="30"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p wsp-rp" cx="12" cy="12" r="9" pathLength="100"/></svg></span><div><b>Studix AI · ${aiuNum(lim)} Token pro Woche</b><small>Alle Modelle nutzbar: Gemini 1×, Groq 0,5×. Deinen Verbrauch siehst du im Ring.</small></div></div>
       <div class="wsp-row"><span class="obx-ico">${ic("note")}</span><div><b>Alles andere ohne Limit</b><small>Notizen, Karteikarten, Planer, Prüfungen, Noten und Fokus-Timer.</small></div></div>
-      <div class="wsp-row"><span class="obx-ico">${ic("spark")}</span><div><b>Mehr mit Studix Study Pro</b><small>Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche und längere Antworten.</small></div></div></div>
+    </div>
     <div class="wsp-act">${canBuy ? `<button class="obx-sec" id="wsp-pro" type="button">14 Tage Pro gratis testen</button>` : ""}<button class="obx-go" id="wsp-go" type="button">Los geht’s</button></div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 350); };
@@ -71,7 +71,7 @@ function onboarding() {
   const root = document.createElement("div"); root.className = "obx"; $("#modal-root").appendChild(root);
   const can = typeof BILL !== "undefined" && BILL.cfg && BILL.cfg.enabled && CLOUD.user && !isPlus(), trial = (BILL.cfg && BILL.cfg.trial) || 14;
   const priceStr = () => can && BILL.cfg.monthly ? money(BILL.cfg.monthly) : "";
-  const IDS = ["welcome", "features", "region", "who", "grades", "subjects", "pro"], last = IDS.length - 1;
+  const IDS = ["welcome", "features", "region", "who", "grades", "subjects"], last = IDS.length - 1;   // kein Upgrade-Fenster beim Start: Pro wird erst gezeigt, wenn der Mehrwert spürbar ist (proNudge)
   const dots = () => `<div class="obx-dots">${IDS.map((_, i) => `<i class="${i === O.step ? "on" : i < O.step ? "done" : ""}"></i>`).join("")}</div>`;
   const finish = async (buy) => {
     clearInterval(O.tm);
@@ -81,7 +81,7 @@ function onboarding() {
     const w = `<h1>Willkommen bei Studix</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Studix AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
     save(); try { proApply(); } catch {} root.remove(); go("today"); buildShell(true);
-    if (buy) { toast("Alles bereit!"); setTimeout(() => plusBuy("trial"), 400); } else welcomeSplash(D.profile.name, can);
+    if (buy) { toast("Alles bereit!"); setTimeout(() => plusBuy("trial"), 400); } else welcomeSplash(D.profile.name, false);
   };
   const hint = () => O.country && priceHint(O.country) ? `Studix Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;";
   const V = {
@@ -113,7 +113,7 @@ function onboarding() {
     root.innerHTML = `<div class="obx-card"><div class="obx-top"><a class="logo" href="#"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>${dots()}</div>
       <div class="obx-body" data-step="${id}">${V[id]()}</div>
       <div class="obx-foot">${O.step ? `<button class="obx-back" id="ob-b">Zurück</button>` : "<span></span>"}
-        <div class="obx-acts">${O.step === last ? (can ? `<button class="obx-skip" id="ob-skip">Später</button><button class="obx-go" id="ob-buy">${trial} Tage gratis testen</button>` : `<button class="obx-go" id="ob-fin">Los geht's</button>`) : `<button class="obx-go" id="ob-n2">Weiter</button>`}</div></div></div>`;
+        <div class="obx-acts">${O.step === last ? `<button class="obx-go" id="ob-fin">Los geht's</button>` : `<button class="obx-go" id="ob-n2">Weiter</button>`}</div></div></div>`;
     $("#ob-n", root)?.addEventListener("input", e => { O.name = e.target.value; }); $("#ob-n", root)?.addEventListener("keydown", e => { if (e.key === "Enter") $("#ob-n2", root).click(); });
     $$("#ob-l button", root).forEach(x => x.onclick = () => { if (O.level !== x.dataset.l) O.picked.clear(); O.level = x.dataset.l; $$("#ob-l button", root).forEach(y => y.classList.toggle("on", y === x)); });
     $$("#ob-g button", root).forEach(x => x.onclick = () => { O.goal = +x.dataset.g; $$("#ob-g button", root).forEach(y => y.classList.toggle("on", y === x)); });
@@ -195,6 +195,7 @@ function newMenu(anchor) {
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
+    ...(cloudOn() && BILL.cfg && BILL.cfg.enabled ? ["-", { label: "Freunde einladen", icon: "gift", fn: () => inviteModal() }] : []),
   ]);
 }
 async function newSubject() {

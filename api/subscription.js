@@ -29,9 +29,10 @@ module.exports = async function handler(req, res) {
     let sub = await L.liveSubscription(user.id, { fresh: action !== "get", withInvoices: invoices !== false });
     const g = await L.grantOf(user.id);   // Early Backer: 3 Monate Pro geschenkt + Abzeichen
     if (g) {
-      if (!sub || !L.ACTIVE.includes(sub.status)) { if (L.grantActive(g)) sub = { id: "early_backer", status: "trialing", interval: null, amount: null, currency: null, trial_end: g.until, current_period_end: g.until, cancel_at_period_end: true, cancel_at: g.until, card: null, invoices: [], grant: true }; else if (!sub) sub = { id: "early_backer", status: "canceled", current_period_end: g.until, invoices: [], grant: true }; }
-      sub = { ...sub, badge: g.badge };
+      if (!sub || !L.ACTIVE.includes(sub.status)) { if (L.grantActive(g)) sub = { id: "early_backer", status: "trialing", interval: null, amount: null, currency: null, trial_end: g.until, current_period_end: g.until, cancel_at_period_end: true, cancel_at: g.until, card: null, invoices: [], grant: true }; else if (!sub && g.badge) sub = { id: "early_backer", status: "canceled", current_period_end: g.until, invoices: [], grant: true }; }
+      if (sub) sub = { ...sub, badge: g.badge };
     }
+    if (sub && sub.customer && sub.currency && L.ACTIVE.includes(sub.status)) await L.applyCredits(user.id, sub.customer, sub.currency);   // offenes Einladungs-Guthaben bei Stripe verbuchen
     return res.status(200).json({ sub });
   } catch (e) { return res.status(e.status && e.status < 600 ? e.status : 502).json({ error: e.message }); }
 };

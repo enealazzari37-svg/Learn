@@ -17,9 +17,14 @@ module.exports = async function handler(req, res) {
     const P = (await plansP)[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast bereits ein Abo – verwalte oder wechsle es unter Einstellungen." });
     const trial = wantTrial && !live, base = L.siteUrl(req), customer = await L.validCustomer(live?.customer), avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
+    /* Einladungs-Guthaben: vor dem Bezahlen beim Stripe-Kunden gutschreiben (legt bei Bedarf den Kunden an) – Stripe verrechnet es mit der Rechnung */
+    let cust = customer;
+    if (cur && await L.pendingCredit(user.id)) {
+      try { if (!cust) cust = (await L.stripe("POST", "/customers", { email: user.email || undefined, metadata: { user_id: user.id } })).id; await L.applyCredits(user.id, cust, cur); } catch (e) {}
+    }
     const common = {
       mode: "subscription", managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
-      client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
+      client_reference_id: user.id, ...(cust ? { customer: cust } : { customer_email: user.email || undefined }),
       subscription_data: { metadata: { user_id: user.id, tier: isEss ? "essential" : "pro" }, ...(trial ? { trial_period_days: TRIAL } : {}) }, metadata: { user_id: user.id },
       success_url: `${base}/?plus=success#/app/settings`, cancel_url: `${base}/?plus=cancel#/app/settings`,
     };
