@@ -1,9 +1,14 @@
 name: Vercel Cleanup
 
-# Loescht woechentlich alte Vercel-Deployments und behaelt nur die neuesten N
-# (Standard: 10). Das aktuelle Production-Deployment wird nie geloescht.
+# Loescht alte Vercel-Deployments und behaelt nur die neuesten N (Standard: 10).
+# Laeuft bei jedem Push auf main, nach jedem erfolgreichen Vercel-Deployment
+# (deployment_status), woechentlich und manuell. Das aktuelle
+# Production-Deployment wird nie geloescht.
 
 on:
+  push:
+    branches: [main]
+  deployment_status:
   schedule:
     - cron: "17 3 * * 0" # sonntags 03:17 UTC
   workflow_dispatch:
@@ -16,9 +21,15 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: vercel-cleanup
+  cancel-in-progress: false
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+    # Bei deployment_status nur nach erfolgreichem Deployment laufen
+    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
