@@ -90,7 +90,7 @@ async function cloudInit() {
   if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
-  await accessCheck();
+  await accessCheck(); await ageGate();
   CLOUD.sb.auth.onAuthStateChange((ev, s) => { if (ev === "PASSWORD_RECOVERY") setTimeout(recoveryModal, 600); const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
@@ -99,7 +99,7 @@ async function cloudAfterLogin() {
   if (!(await mfaGate())) { try { await CLOUD.sb.auth.signOut(); } catch {} return; }
   plusLoad(false).then(() => { try { refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
-  await accessCheck();
+  await accessCheck(); await ageGate();
   $("#app").innerHTML = ""; route();
 }
 function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.textContent = CLOUD.user ? (CLOUD.dirty.size ? "Wird synchronisiert …" : "Synchronisiert") : ""; }
@@ -175,7 +175,9 @@ function cloudAuthBind(el, done) {
   /* E-Mail muss bestätigt sein: erst nach dem Klick auf den Link in der Mail geht die Anmeldung */
   const verify = (email, pw) => cloudVerifyView(el, email, pw, done);
   const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Anmelden …"); const { data, error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) { if (/confirm/i.test(error.message)) { try { await CLOUD.sb.auth.resend({ type: "signup", email: v[0], options: { emailRedirectTo: location.origin + "/" } }); } catch {} verify(v[0], v[1]); } else msg("Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); } else if (cloudUnconfirmed(data?.user)) { try { await CLOUD.sb.auth.signOut(); } catch {} verify(v[0], v[1]); } else done();  } finally { authBusy = false; } };
-  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Konto wird erstellt …"); const rc = ($("#cl-rc", el)?.value || "").trim(); try { rc ? localStorage.setItem(RC_KEY, rc) : localStorage.removeItem(RC_KEY); } catch {} const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: rc ? { app: "lumi", ref_code: rc } : { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session && !cloudUnconfirmed(data.user)) return done(); if (data.session) { try { await CLOUD.sb.auth.signOut(); } catch {} } verify(v[0], v[1]);  } finally { authBusy = false; } };
+  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Konto wird erstellt …"); const bdEl = $("#cl-bd", el); let age = null;
+    if (bdEl) { const e = ageErr(bdEl.value, $("#cl-pok", el)?.checked, ($("#cl-pm", el)?.value || "").trim()); if (e) { authBusy = false; return msg(e); } const minor = ageOf(bdEl.value) < AGE_MIN_FREE; age = { birthday: bdEl.value, ...(minor ? { parent_ok: true, parent_email: $("#cl-pm", el).value.trim() } : {}) }; try { D.profile.birthday = bdEl.value; if (minor) { D.profile.parentOk = true; D.profile.parentEmail = age.parent_email; } save(); } catch {} }
+    const rc = ($("#cl-rc", el)?.value || "").trim(); try { rc ? localStorage.setItem(RC_KEY, rc) : localStorage.removeItem(RC_KEY); } catch {} const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi", ...(rc ? { ref_code: rc } : {}), ...(age || {}) }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session && !cloudUnconfirmed(data.user)) return done(); if (data.session) { try { await CLOUD.sb.auth.signOut(); } catch {} } verify(v[0], v[1]);  } finally { authBusy = false; } };
   const bf = $("#cl-fp", el); if (bf) bf.onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
   $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ($("#cl-in", el) || $("#cl-up", el)).click(); } }));
   setTimeout(() => $("#cl-e", el)?.focus(), 50);
@@ -206,6 +208,35 @@ async function accessCheck() {
     if (r.ok) { try { await plusLoad(false); } catch {} if (j.granted && j.until) proGiftPopup(j.until, j.referral ? "Dein Guthaben wird bei der ersten Zahlung verrechnet." : ""); else if (j.referral) toast("Einladung eingelöst: 1 Monat Pro geschenkt + Guthaben 🎉"); else if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); }
     else toast(j.error || "Dieser Code ist ungültig.");
   } catch {}
+}
+/* Alter: unter 16 braucht es die Erlaubnis der Eltern (Registrierung und, falls noch nicht angegeben, nach der Anmeldung) */
+const AGE_MIN_FREE = 16;
+const ageOf = s => { const b = new Date(s); if (!s || isNaN(b)) return -1; const n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n.getMonth() < b.getMonth() || (n.getMonth() === b.getMonth() && n.getDate() < b.getDate())) a--; return a; };
+const ageErr = (bd, ok, pm) => { const a = ageOf(bd); if (!bd) return "Bitte gib dein Geburtsdatum an."; if (a < 0 || a > 120 || new Date(bd) > new Date()) return "Bitte gib ein gültiges Geburtsdatum an."; if (a < AGE_MIN_FREE) { if (!ok) return "Bitte bestätige die Erlaubnis deiner Eltern."; if (!/^\S+@\S+\.\S+$/.test(pm || "")) return "Bitte gib die E-Mail-Adresse deiner Eltern an."; } return ""; };
+function ageBind(el) {   // Eltern-Block ein-/ausblenden, sobald ein Geburtsdatum unter 16 eingetragen ist
+  const bd = $("#cl-bd", el), par = $("#cl-par", el); if (!bd || !par) return;
+  const upd = () => { const a = ageOf(bd.value); par.hidden = !(a >= 0 && a < AGE_MIN_FREE); if (!par.hidden) LPL.sync(); }; bd.addEventListener("input", upd); bd.addEventListener("change", upd); upd();
+}
+/* Nach der Anmeldung: fehlt das Geburtsdatum (z. B. Google/Apple-Konto) oder die Erlaubnis der Eltern bei unter 16, fragen wir einmal nach */
+async function ageGate() {
+  if (!CLOUD.user || EMBED_MODE || typeof D === "undefined") return;
+  const md = CLOUD.user.user_metadata || {};
+  if (!D.profile.birthday && md.birthday) { D.profile.birthday = md.birthday; if (md.parent_ok) { D.profile.parentOk = true; D.profile.parentEmail = md.parent_email || ""; } save(); }
+  const a = ageOf(D.profile.birthday); if (D.profile.birthday && (a >= AGE_MIN_FREE || D.profile.parentOk || md.parent_ok)) return;
+  await new Promise(done => {
+    const el = document.createElement("div"); el.className = "mask"; el.innerHTML = `<div class="st-modal" role="dialog" aria-modal="true"><h3>Kurz noch dein Alter</h3><p class="note">Wir brauchen dein Geburtsdatum (Jugendschutz). Unter 16 ist die Erlaubnis deiner Eltern oder Erziehungsberechtigten nötig.</p>
+      <label class="lbl" for="ag-bd">Geburtsdatum</label><input class="field" id="ag-bd" type="date" max="${iso()}" min="1900-01-01" value="${esc(D.profile.birthday || "")}">
+      <div class="par-box" id="ag-par" hidden><label class="par-chk"><input type="checkbox" id="ag-ok"><span>Meine Eltern oder Erziehungsberechtigten sind einverstanden.</span></label><input class="field" id="ag-pm" type="email" autocomplete="off" placeholder="E-Mail der Eltern"></div>
+      <p class="note authmsg err" id="ag-m" aria-live="polite"></p><div class="row end"><button class="btn ghost" id="ag-out" type="button">Abmelden</button><button class="btn primary" id="ag-go" type="button">Speichern</button></div></div>`;
+    $("#modal-root").appendChild(el); const bd = $("#ag-bd", el), par = $("#ag-par", el), upd = () => { const x = ageOf(bd.value); par.hidden = !(x >= 0 && x < AGE_MIN_FREE); LPL.sync(); }; bd.oninput = upd; upd();
+    $("#ag-out", el).onclick = async () => { el.remove(); try { await CLOUD.sb.auth.signOut(); } catch {} done(); };
+    $("#ag-go", el).onclick = async () => {
+      const e = ageErr(bd.value, $("#ag-ok", el).checked, $("#ag-pm", el).value.trim()); if (e) { $("#ag-m", el).textContent = e; LPL.sync(); return; }
+      const minor = ageOf(bd.value) < AGE_MIN_FREE; D.profile.birthday = bd.value; if (minor) { D.profile.parentOk = true; D.profile.parentEmail = $("#ag-pm", el).value.trim(); } save();
+      try { await CLOUD.sb.auth.updateUser({ data: { birthday: bd.value, ...(minor ? { parent_ok: true, parent_email: D.profile.parentEmail } : {}) } }); } catch {}
+      el.remove(); done();
+    };
+  });
 }
 /* Code prüfen (löst nichts ein) → [Klasse, Text] */
 async function codeCheck(v) {
@@ -246,6 +277,8 @@ function authScreen(mode = "in") {
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
+        ${up ? `<label class="lbl" for="cl-bd">Geburtsdatum</label><div class="fld"><input class="field pill" id="cl-bd" type="date" max="${iso()}" min="1900-01-01" autocomplete="bday"></div>
+        <div class="par-box" id="cl-par" hidden><p class="note">Unter 16 brauchen wir die Erlaubnis deiner Eltern oder Erziehungsberechtigten.</p><label class="par-chk"><input type="checkbox" id="cl-pok"><span>Meine Eltern oder Erziehungsberechtigten sind einverstanden.</span></label><div class="fld"><input class="field pill" id="cl-pm" type="email" autocomplete="off" placeholder="E-Mail der Eltern"></div></div>` : ""}
         ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" value="${esc(pendingRef())}" style="letter-spacing:.12em;text-transform:uppercase"></div><p class="note rc-m" id="cl-rcm" aria-live="polite" style="margin:6px 2px 0">Von einem Freund eingeladen? Ihr bekommt beide 1 Monat Pro und Guthaben.</p>` : ""}
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
@@ -256,7 +289,7 @@ function authScreen(mode = "in") {
     <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.svg" width="40" height="40" alt=""><b><span class="wm"><b>S</b>tudi<b>x</b></span></b></a>
       <div class="ah-copy"><h2>Dein Lern- und Workspace an einem Ort.</h2><p>Notizen, Karteikarten, Planer und Studix AI – auf iPad, Handy und PC, auch offline.</p><div class="ah-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div></div>
       <div class="auth-app" aria-hidden="true"><div class="aa-bar"><i></i><i></i><i></i><span>studix.space</span></div><div class="aa-view"><iframe tabindex="-1" title="Studix App-Vorschau"></iframe></div></div></aside></div></div>`;
-  authHeroMount($(".authhero", app));
+  authHeroMount($(".authhero", app)); ageBind($(".authform", app));
   const f = $(".authform", app); cloudAuthBind(f, () => {});
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   const rc = $("#cl-rc", f), rm = $("#cl-rcm", f);   // Code live prüfen: gültig oder nicht

@@ -695,7 +695,7 @@ window.LPL_FR = {
     "So sieht Studix aus – auf iPad, Handy und Computer.": "Voici à quoi ressemble Studix – sur iPad, mobile et ordinateur.",
     "Deine Region": "Ta région",
     "Wo lebst du?": "Où habites-tu ?",
-    "Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.": "Tous les prix sont en euros. La taxe dépend de ton adresse de facturation.",
+    "Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.": "Pour que les prix et la devise soient justes – CHF, EUR ou USD. La taxe dépend de ton adresse de facturation.",
     "Land wählen …": "Choisir un pays …",
     "Über dich": "À propos de toi",
     "Wie lernst du?": "Comment apprends-tu ?",
@@ -1147,6 +1147,18 @@ window.LPL_FR.RX.push(["^Studix AI mit bis zu (.+) Token pro Woche und (.+) pro 
   ["^Studix Study Pro bringt Studix AI auf (.+) Token pro Woche\\. Es ist bald verfügbar\\.$", "Studix Study Pro porte Studix AI à $1 jetons par semaine. Bientôt disponible."],
   ["^Studix AI: (.+) Token pro Woche \\(\\+ 5-Stunden-Limit\\)$", "Studix AI : $1 jetons par semaine (+ limite de 5 heures)"],
   ["^Studix AI · (.+) Token pro Woche$", "Studix AI · $1 jetons par semaine"]);
+Object.assign(window.LPL_FR.FR, {
+  "Geburtsdatum": "Date de naissance",
+  "Unter 16 brauchen wir die Erlaubnis deiner Eltern oder Erziehungsberechtigten.": "Avant 16 ans, nous avons besoin de l’accord de tes parents ou tuteurs légaux.",
+  "Meine Eltern oder Erziehungsberechtigten sind einverstanden.": "Mes parents ou tuteurs légaux sont d’accord.",
+  "E-Mail der Eltern": "E-mail des parents",
+  "Bitte gib dein Geburtsdatum an.": "Indique ta date de naissance.",
+  "Bitte gib ein gültiges Geburtsdatum an.": "Indique une date de naissance valide.",
+  "Bitte bestätige die Erlaubnis deiner Eltern.": "Confirme l’accord de tes parents.",
+  "Bitte gib die E-Mail-Adresse deiner Eltern an.": "Indique l’adresse e-mail de tes parents.",
+  "Kurz noch dein Alter": "Juste ton âge",
+  "Wir brauchen dein Geburtsdatum (Jugendschutz). Unter 16 ist die Erlaubnis deiner Eltern oder Erziehungsberechtigten nötig.": "Nous avons besoin de ta date de naissance (protection des mineurs). Avant 16 ans, l’accord de tes parents ou tuteurs légaux est nécessaire."
+});
 window.LPL_FR.FR["Dashboard"] = "Tableau de bord"; window.LPL_FR.FR["Name"] = "Nom"; window.LPL_FR.FR["Workspace"] = "Workspace";
 /* Datumsangaben („26. November 2026“) in übersetzten Texten → „26 novembre 2026“ */
 window.LPL_FR.dateFr = (() => {
