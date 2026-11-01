@@ -1,4 +1,4 @@
-/* Pre-Launch Early Access: Die Startseite und die Anmeldung sind offen, aber ohne Zugangscode kommt man nach der Anmeldung nicht in die App.
+/* Einladungs-/Early-Access-Code: optional beim Registrieren, kein Zugangscode mehr nötig für die App. Der Code wird nach der Anmeldung über "redeem" eingelöst (Early-Backer-Pro-Geschenk, Abzeichen).
    POST { action:"status" }            mit Supabase-Token → { access:bool } (ob dieses Konto schon freigeschaltet ist)
    POST { action:"redeem", code }      mit Supabase-Token → schaltet das Konto frei. Early-Backer-/Pro-Codes geben zusätzlich Pro gratis + Abzeichen "Early Backer" (pro Konto einmal).
    Gespeichert in app_metadata des Kontos (nur mit SUPABASE_SERVICE_ROLE_KEY schreibbar). Beides in einer Datei, weil Vercel Hobby nur 12 Funktionen erlaubt.

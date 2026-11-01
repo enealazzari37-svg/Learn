@@ -164,7 +164,7 @@ function cloudAuthBind(el, done) {
   /* E-Mail muss bestätigt sein: erst nach dem Klick auf den Link in der Mail geht die Anmeldung */
   const verify = (email, pw) => cloudVerifyView(el, email, pw, done);
   const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Anmelden …"); const { data, error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) { if (/confirm/i.test(error.message)) { try { await CLOUD.sb.auth.resend({ type: "signup", email: v[0], options: { emailRedirectTo: location.origin + "/" } }); } catch {} verify(v[0], v[1]); } else msg("Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); } else if (cloudUnconfirmed(data?.user)) { try { await CLOUD.sb.auth.signOut(); } catch {} verify(v[0], v[1]); } else done();  } finally { authBusy = false; } };
-  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session && !cloudUnconfirmed(data.user)) return done(); if (data.session) { try { await CLOUD.sb.auth.signOut(); } catch {} } verify(v[0], v[1]);  } finally { authBusy = false; } };
+  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { if (authBusy) return; const v = need(); if (!v) return; authBusy = true; try { msg("Konto wird erstellt …"); const rc = ($("#cl-rc", el)?.value || "").trim(); try { rc ? localStorage.setItem(RC_KEY, rc) : localStorage.removeItem(RC_KEY); } catch {} const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: rc ? { app: "lumi", ref_code: rc } : { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session && !cloudUnconfirmed(data.user)) return done(); if (data.session) { try { await CLOUD.sb.auth.signOut(); } catch {} } verify(v[0], v[1]);  } finally { authBusy = false; } };
   const bf = $("#cl-fp", el); if (bf) bf.onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
   $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ($("#cl-in", el) || $("#cl-up", el)).click(); } }));
   setTimeout(() => $("#cl-e", el)?.focus(), 50);
@@ -178,35 +178,20 @@ function authHeroMount(hero) {
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
-/* Pre-Launch Early Access: Startseite und Anmeldung sind offen; nach der Anmeldung braucht das Konto einmalig einen Zugangscode (Freischaltung steht serverseitig im Konto) */
-const eaKey = () => "studix-ea-" + (CLOUD.user?.id || "");
-const accessOk = () => { if (!CLOUD.user) return true; if (CLOUD.ea === CLOUD.user.id) return true; try { return localStorage.getItem(eaKey()) === "1"; } catch { return false; } };
-const accessSet = () => { CLOUD.ea = CLOUD.user?.id; try { localStorage.setItem(eaKey(), "1"); } catch {} };
+/* Einladungs-/Early-Access-Code: optional beim Registrieren. Kein Zugangscode mehr nötig, um die App zu nutzen.
+   Der Code wird beim Registrieren gemerkt und nach der ersten Anmeldung (E-Mail ist dann bestätigt) einmalig eingelöst. */
+const RC_KEY = "studix-refcode", rcDoneKey = () => "studix-rc-done-" + (CLOUD.user?.id || "");
 async function accessCheck() {
-  if (!CLOUD.user || accessOk()) return;
-  try { const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "status" }) }); if (r.ok && (await r.json()).access) accessSet(); } catch {}
-}
-function accessScreen() {
-  const app = $("#app"); document.title = LPL.tt("Studix – Early Access");
-  app.innerHTML = `<div class="authwrap"><div class="authshell" style="grid-template-columns:1fr">
-    <form class="authform" onsubmit="return false" novalidate style="margin:auto"><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
-      <div class="authmid"><h1>Early Access</h1><p class="authsub">Studix ist noch in der Pre-Launch-Phase. Gib deinen Zugangscode ein, um fortzufahren.</p>
-        <label class="lbl" for="ac-c">Zugangscode</label><div class="fld"><input class="field pill" id="ac-c" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>
-        <p class="note authmsg" id="ac-m" aria-live="polite"></p>
-        <button class="btn authgo" id="ac-go" type="submit">Fortfahren</button>
-        <button class="link" id="ac-out" type="button">Abmelden</button><div class="lang-sw inline"><button type="button" data-lang="en">English</button><i>·</i><button type="button" data-lang="de">Deutsch</button></div></div></form></div></div>`;
-  const f = $(".authform", app), i = $("#ac-c", f), m = $("#ac-m", f), b = $("#ac-go", f); let busy = false;
-  const go = async () => {
-    if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.className = "note authmsg"; m.textContent = "Prüfe …";
-    try {
-      const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code: i.value }) }), j = await r.json().catch(() => ({}));
-      if (!r.ok) { m.className = "note authmsg err"; m.textContent = j.error || "Dieser Code ist ungültig."; }
-      else { accessSet(); if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} $("#app").innerHTML = ""; route(); return; }
-    } catch { m.className = "note authmsg err"; m.textContent = "Keine Verbindung. Versuche es noch einmal."; }
-    busy = false; b.disabled = false;
-  };
-  f.onsubmit = e => { e.preventDefault(); go(); }; b.onclick = e => { e.preventDefault(); go(); }; $("#ac-out", f).onclick = async () => { try { await CLOUD.sb.auth.signOut(); } catch {} }; i.focus();
-  LPL.sync();
+  if (!CLOUD.user) return;
+  let code = ""; try { if (localStorage.getItem(rcDoneKey()) === "1") return; code = localStorage.getItem(RC_KEY) || CLOUD.user.user_metadata?.ref_code || ""; } catch {}
+  if (!code) return;
+  try {
+    const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code }) }), j = await r.json().catch(() => ({}));
+    if (r.status === 401 || r.status >= 500) return;   // später nochmal versuchen
+    try { localStorage.setItem(rcDoneKey(), "1"); localStorage.removeItem(RC_KEY); } catch {}
+    if (r.ok) { if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} }
+    else toast(j.error || "Dieser Code ist ungültig.");
+  } catch {}
 }
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = LPL.tt(up ? "Studix – Konto erstellen" : "Studix – Anmelden");
@@ -215,6 +200,7 @@ function authScreen(mode = "in") {
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
+        ${up ? `<label class="lbl" for="cl-rc">Einladungscode (optional)</label><div class="fld"><input class="field pill" id="cl-rc" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>` : ""}
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? `<svg width="18" height="18" viewBox="0 0 48 48" style="margin-right:10px"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 019.5 24c0-1.6.3-3.2.9-4.7l-7.8-6.1A24 24 0 000 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Mit Google fortfahren` : "Mit Apple fortfahren"}</button>`).join("")}</div>` : ""}
@@ -228,7 +214,7 @@ function authScreen(mode = "in") {
   const f = $(".authform", app); cloudAuthBind(f, () => {});
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
-  $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/" } }); if (error) $("#cl-m", f).textContent = error.message; });
+  $$("[data-o]", f).forEach(b => b.onclick = async () => { const rc = ($("#cl-rc", f)?.value || "").trim(); try { if (rc) localStorage.setItem(RC_KEY, rc); } catch {} const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/" } }); if (error) $("#cl-m", f).textContent = error.message; });
   LPL.sync();
 }
 function cloudLoginModal() {

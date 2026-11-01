@@ -20,7 +20,6 @@ function route() {
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = LPL.title(); if (!landingEl.dataset.r) renderLanding(); LPL.sync(); window.scrollTo(0, 0); return; }
   landingEl.hidden = true; appEl.hidden = false; document.title = "Studix"; LPL.sync();
   if (!EMBED && cloudGate()) return authScreen();
-  if (!EMBED && !accessOk()) return accessScreen();
   if (!EMBED && !D.profile.onboarded && !onboardShown) { onboardShown = true; buildShell(); renderView(); onboarding(); return; }
   renderView();
 }
