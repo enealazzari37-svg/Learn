@@ -208,7 +208,7 @@ function weekView(pb, m) {
   $$("[data-l]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.l)));
 }
 V.planner = m => {
-  m.innerHTML = `<div class="page">${pageHead(`<span>Planer</span><i>/</i><b>${({ week: "Woche", tasks: "Aufgaben", tt: "Stundenplan", cal: "Kalender" })[plTab] || "Woche"}</b>`, [["week", "Woche"], ["tasks", "Aufgaben"], ["tt", "Stundenplan"], ["cal", "Kalender"]].map(([k, l]) => sdkBtn(k, l, `data-t="${k}"`)).join("") + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Aufgabe hinzufügen", 'id="nt"'), 'id="pt"')}<div id="pb"></div></div>`;
+  m.innerHTML = `<div class="page">${pageHead(`<span>Planer</span><i>/</i><b>${({ week: "Woche", tasks: "Aufgaben", tt: "Stundenplan" })[plTab] || "Woche"}</b>`, [["week", "Woche"], ["tasks", "Aufgaben"], ["tt", "Stundenplan"]].map(([k, l]) => sdkBtn(k, l, `data-t="${k}"`)).join("") + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Aufgabe hinzufügen", 'id="nt"'), 'id="pt"')}<div id="pb"></div></div>`;
   $$("#pt button[data-t]", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
   $("#nt", m).onclick = () => taskModal();
   const pb = $("#pb", m);
