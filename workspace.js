@@ -1,4 +1,6 @@
 "use strict";
+/* Pro: Workspace schneller abfragen (Essential/Gratis seltener, spart Datenverkehr; im Hintergrund-Tab gar nicht) */
+const wsPollMs = (slow, fast) => { try { return isPlus() && !isEss() ? fast : slow; } catch { return slow; } };
 /* Studix Workspaces: gemeinsame Bereiche mit Mitgliedern, Rollen (Admin/Mitglied), Ordnern und gemeinsam bearbeiteten Dokumenten.
    Alle Daten liegen in Supabase (supabase/workspace.sql) und werden nur über Funktionen gelesen/geschrieben, die Mitgliedschaft und Rolle prüfen.
    Dokumente sind geteilte Notizen (wie „Zusammenarbeiten“): jedes Mitglied öffnet sie im normalen Editor und schreibt live mit. */
@@ -160,7 +162,7 @@ async function wsOpen(m, wid, fid) {
     $("#ws-d2", m)?.addEventListener("click", newDoc); $("#ws-f2", m)?.addEventListener("click", () => newFolder());
   }
   sig = JSON.stringify([W.name, W.members, W.folders, W.items]); draw();
-  const t = setInterval(() => { if (dead || !m.isConnected) return clearInterval(t); if (!document.hidden) refresh(); }, 10000); LEAVE.push(() => clearInterval(t));
+  const t = setInterval(() => { if (dead || !m.isConnected) return clearInterval(t); if (!document.hidden) refresh(); }, wsPollMs(10000, 3000)); LEAVE.push(() => clearInterval(t));
 }
 
 /* ---------- Workspace-Hub: Team-Kalender, Termine, Aufgaben, Chat, Aktivität (supabase/workspace-hub.sql) ---------- */
@@ -208,7 +210,7 @@ function wsHub(host, wid, W, nameOf, isDead) {
     $$("[data-tc]", host).forEach(b => b.onclick = () => { const t = tasks.find(x => x.id === b.dataset.tc); call("lumi_ws_task_save", { p_id: t.id, p_title: t.title, p_prio: t.prio, p_status: t.status === "todo" ? "doing" : "done", p_assignee: t.assignee, p_due: t.due }); });
     $("#hch-f", host).onsubmit = e => { e.preventDefault(); const i = $("#hch-i", host), v = i.value.trim(); if (!v) return; i.value = ""; call("lumi_ws_msg_send", { p_body: v }); };
   }
-  load(); WSHUB_T = setInterval(() => { if (!document.hidden && (!document.activeElement || document.activeElement.id !== "hch-i")) load(); }, 12000); LEAVE.push(() => clearInterval(WSHUB_T));
+  load(); WSHUB_T = setInterval(() => { if (!document.hidden && (!document.activeElement || document.activeElement.id !== "hch-i")) load(); }, wsPollMs(12000, 4000)); LEAVE.push(() => clearInterval(WSHUB_T));
 }
 
 /* ---------- Überarbeitete Zeichen-Icons (Stift, Marker, Radierer): einheitlich, klar, abgerundet ---------- */
