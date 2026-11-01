@@ -13,3 +13,9 @@ Die Sprachausgabe (Voice) läuft über OpenRouter mit HeyGen Voice Turbo (`api/t
 
 ## Bezahlung (Studix Study Pro mit Stripe Managed Payments)
 Abo-Zahlungen über Stripe Checkout mit Managed Payments (Stripe ist Verkäufer und übernimmt Mehrwertsteuer in 80+ Ländern). Das Abo wird live aus Stripe gelesen, nichts davon liegt in unserer Datenbank. Einrichtung Schritt für Schritt: [docs/PAYMENTS.md](docs/PAYMENTS.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).
+
+## Vercel CI
+
+- `.github/workflows/vercel.yml`: Pull Requests -> Preview-Deployment (URL als PR-Kommentar), Push auf `main` -> Production.
+- `.github/workflows/vercel-cleanup.yml`: woechentlich (So 03:17 UTC) loescht `scripts/cleanup-deployments.js` alle Deployments ausser den neuesten 10 (und nie das aktuelle Production-Deployment). Manuell startbar mit `keep` und `dry_run`.
+- Benoetigte GitHub-Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (Werte aus `vercel link` bzw. `.vercel/project.json`).
