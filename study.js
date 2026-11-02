@@ -1012,11 +1012,12 @@ async function noteEditor(m, d) {
     instr = (instr || "").trim(); if (!instr || aiState === "busy" || !aiR) return; aiState = "busy"; panel("busy");
     const text = aiR.toString().trim();
     const prompt = text ? `Anweisung: ${instr}\n\nBearbeite den folgenden Text entsprechend. Gib NUR den neuen Text zurück (ohne Kommentar, ohne Anführungszeichen), in derselben Sprache wie der Text (außer die Anweisung verlangt eine Übersetzung) und behalte Fachbegriffe bei. Dokumenttitel: ${d.title}.\n\nTEXT:\n${text}` : `Schreibe (kurz und prägnant, auf Deutsch) passend zum Dokument „${d.title}“: ${instr}\nGib NUR den Text zurück, ohne Einleitung.\n\nBISHERIGER INHALT (Auszug):\n${body.innerText.slice(0, 1500)}`;
-    let res = await ai(prompt, { system: sysBase("You are an inline writing assistant inside a note editor."), max: 1200, quiet: true });
+    let res = null;
+    try { res = await Promise.race([ai(prompt, { system: sysBase("You are an inline writing assistant inside a note editor."), max: 1200, quiet: true }), new Promise(r => setTimeout(() => r(null), 60000))]); } catch (e) { console.error("Studix AI", e); res = null; }
     if (res == null) res = localEdit(instr, text);
     if (res == null) { toast(hasKey() ? "Studix AI hat nicht geantwortet." : "Für diese Studix-AI-Änderung muss Studix AI eingerichtet sein (Einstellungen → Studix AI)."); aiState = "idle"; panel("idle"); return; }
-    res = res.trim().replace(/^["„“]|["“”]$/g, ""); aiPrev = body.innerHTML;
-    SG.suggestRange(aiR.cloneRange(), res); HLS?.clear(); aiState = "idle"; closeAi();
+    try { res = String(res).trim().replace(/^["„“]|["“”]$/g, ""); aiPrev = body.innerHTML;
+    SG.suggestRange(aiR.cloneRange(), res); HLS?.clear(); aiState = "idle"; closeAi(); } catch (e) { console.error("Studix AI", e); toast("Studix AI: Änderung konnte nicht eingefügt werden."); aiState = "idle"; panel("idle"); }
   }
   $(".send", bar).onclick = () => sendAi(barIn.value); barIn.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); sendAi(barIn.value); } else if (e.key === "Escape") closeAi(); };
   $$(".ab-chips [data-sel]", bar).forEach((b, i) => b.onclick = () => sendAi(QA[i][1]));
