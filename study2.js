@@ -411,8 +411,11 @@ function mountChat(box, compact) {
     if (serverInfo && serverInfo.gemini) html += `<button type="button" class="mp-i mp-src ${sourcesOn() ? "on" : ""}" id="mp-src">${ic("globe")}<span class="mp-t"><b>Quellen</b><small>Mit Google-Suche, direkt anklickbar</small></span><i class="mp-sw"></i></button>`;
     pop.innerHTML = html; document.body.appendChild(pop);
     $("#mp-src", pop)?.addEventListener("click", ev => { ev.stopPropagation(); D.profile.sources = !sourcesOn(); save(); ev.currentTarget.classList.toggle("on", sourcesOn()); });
-    const r = b.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
-    pop.style.left = Math.max(8, Math.min(innerWidth - pw - 8, r.left)) + "px"; pop.style.top = (r.top - ph - 10 < 8 ? r.bottom + 10 : r.top - ph - 10) + "px";
+    /* Liste scrollbar und immer sichtbar (iPad: viele Modelle, Auswahl liegt unten) */
+    const r = b.getBoundingClientRect(), vh = (window.visualViewport ? visualViewport.height : innerHeight), pw = pop.offsetWidth, full = pop.scrollHeight;
+    const above = r.top - 18, below = vh - r.bottom - 18, up = full <= above || above >= below, room = Math.max(120, up ? above : below), ph = Math.min(full, room);
+    pop.style.maxHeight = room + "px";
+    pop.style.left = Math.max(8, Math.min(innerWidth - pw - 8, r.left)) + "px"; pop.style.top = (up ? Math.max(8, r.top - ph - 10) : r.bottom + 10) + "px";
     requestAnimationFrame(() => pop.classList.add("on"));
     const close = () => { pop.classList.remove("on"); setTimeout(() => pop.remove(), 180); document.removeEventListener("mousedown", out, true); document.removeEventListener("keydown", kd, true); }, out = ev => { if (!pop.contains(ev.target) && !b.contains(ev.target)) close(); }, kd = ev => { if (ev.key === "Escape") close(); };
     setTimeout(() => { document.addEventListener("mousedown", out, true); document.addEventListener("keydown", kd, true); }, 0);
