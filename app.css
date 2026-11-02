@@ -5116,3 +5116,13 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
   .ned.dfull .rib{position:static;width:auto;max-width:calc(100% - 16px);margin:8px 8px 0}
   .nb-stat{display:none}
 }
+
+/* Workspace-Mitglieder: 1:1 wie im Whiteboard (graue Pille, Avatare 30px, gestrichelter Kreis mit zentriertem +, Pfeil) */
+.sdock .ws-av,.ws-av{display:flex;align-items:center;gap:6px;height:38px;width:auto!important;padding:0 8px 0 5px;border-radius:11px;background:var(--soft);border:0;cursor:pointer}
+.sdock .ws-av:hover,.ws-av:hover{background:#ecebf4}
+.sdock .ws-av i,.ws-av i{width:30px;height:30px;line-height:1;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 13px/1 var(--font);font-style:normal;box-shadow:0 0 0 2px #fff;margin-left:-3px;position:static;transform:none;flex:none}
+.sdock .ws-av i:first-child,.ws-av i:first-child{margin-left:0}
+.sdock .ws-av i.more,.ws-av i.more{background:#d6d6de;color:#444}
+.sdock .ws-av i.inv,.ws-av i.inv{background:#fff!important;color:#6a6a78;border:1.5px dashed #c5c5d0;box-shadow:none;margin-left:-3px;box-sizing:border-box}
+.sdock .ws-av i.inv svg,.ws-av i.inv svg{width:14px;height:14px;position:static;margin:0;display:block}
+.sdock .ws-av>svg,.ws-av>svg{width:15px;height:15px;color:#6a6a78;flex:none;margin-left:3px}
