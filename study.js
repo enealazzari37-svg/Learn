@@ -835,7 +835,7 @@ async function noteEditor(m, d) {
     if (ed.length) { const n = SG.suggestAt(blk, ed, { avoidCaret: true, fast: true, direct: acMode() === "auto", mini: true }); if (n && acMode() === "auto") { ed.forEach(e => AC.log.push({ from: orig0.slice(e.start, e.end), to: e.replace })); AC.log = AC.log.slice(-20); } if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`); }
   };
   /* Lokale Korrektur fast sofort (nach Leerzeichen/Satzzeichen ohne Verzögerung); KI-Prüfung höchstens etwa einmal pro Minute bei Änderungen – früher (5 s), wenn der Algorithmus unsicher ist */
-  const AI_EVERY = 60000, AI_FAST = 5000;
+  const AI_EVERY = 90000, AI_FAST = 15000;   /* seltener = weniger Last auf den Anbieter-Limits (viele Nutzer gleichzeitig) */
   const scheduleAC = e => {
     clearTimeout(AC.lt); const fast = e && e.data && /[\s.,;:!?)\]"„“]/.test(e.data); AC.lt = setTimeout(localAC, fast ? 0 : 140);
     const sl = getSelection(), b = sl.rangeCount && body.contains(sl.anchorNode) ? blockOf(sl.anchorNode) : null; if (b) AC.dirty.add(b);
@@ -844,7 +844,7 @@ async function noteEditor(m, d) {
     const gap = urgent ? AI_FAST : AI_EVERY; AC.timer = setTimeout(runAC, Math.max(urgent ? 1500 : 4000, gap - (Date.now() - AC.last)));
   };
   async function runAC() {
-    if (AC.busy || acMode() === "off" || !hasKey() || !body.isConnected) return;
+    if (AC.busy || acMode() === "off" || !hasKey() || !body.isConnected || document.hidden || Date.now() < (AC.pause || 0)) return;   // Tab im Hintergrund oder Anbieter-Limit: pausieren
     const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
     const cb = blockOf(sel.anchorNode), ok = b => b && b.isConnected && !/^(PRE|CODE)$/.test(b.tagName) && !b.querySelector(".sg-del,.sg-ins") && Suggest.textOf(b).s.trim().length >= 14 && AC.seen.get(b) !== Suggest.textOf(b).s;
     const blk = [cb, ...AC.dirty].find(ok); AC.dirty.forEach(b => { if (!b.isConnected || b === blk) AC.dirty.delete(b); }); if (!blk) return;
@@ -854,6 +854,7 @@ async function noteEditor(m, d) {
     let res = null;
     try { res = await ai(orig, { system: "Du bist eine zurückhaltende Korrektur für Rechtschreibung und Grammatik (Schweizer Hochdeutsch, kein ß, immer „ss“). Korrigiere NUR eindeutige Fehler: Tippfehler, fehlende, vertauschte oder doppelte Buchstaben, Gross-/Kleinschreibung (Satzanfang, Hauptwörter, Namen), das/dass, Artikel und Fälle (Kasus), Verbformen und Zeiten, Übereinstimmung von Subjekt und Verb, Wortendungen. Ändere NICHT: Kommas und andere Satzzeichen, Stil, Wortwahl, Satzbau, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (AC.log.length ? "\n\nEin einfacher Algorithmus hat bereits automatisch geändert: " + AC.log.filter(l => orig.includes(l.to)).map(l => `„${l.from}“ → „${l.to}“`).join(", ") + ". Prüfe diese Änderungen: War eine falsch (z. B. ein Name oder Fachbegriff), stelle das Original wieder her." : "") + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true, bg: true }); } catch {}
     AC.busy = false; AC.seen.set(blk, orig);
+    if (!res && window.lastAiIssue && window.lastAiIssue.kind === "limit") AC.pause = Date.now() + 300000;   // bei 429 fünf Minuten Pause
     if (!res || !blk.isConnected) return;
     let fixed = res.trim(); if (!/^["„“]/.test(orig)) fixed = fixed.replace(/^["„“]|["“”]$/g, "");
     if (!fixed || fixed === orig || fixed.length > orig.length * 1.35 + 20 || fixed.length < orig.length * 0.65 - 20) return;
