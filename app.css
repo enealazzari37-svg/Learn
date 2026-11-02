@@ -5221,3 +5221,12 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 /* Doc-Editor: keine graue Rundkasten-Fläche mehr – nur das Papier, mit feiner Kante/Schatten damit man sieht, wo das Dokument ist */
 .main.doc-full .ned-paper{background-color:#fff!important;border-radius:14px!important;margin:12px!important;min-height:calc(100dvh - 160px);overflow:hidden;box-shadow:0 0 0 1px #e3e3ec,0 8px 28px rgba(20,20,50,.07)!important}
 .main.doc-full{background:#fff!important}
+
+/* Doc-Editor: Werkzeugband hat in allen Tabs (Start, Einfügen, Draw, Design, Ansicht, Überprüfen) dieselbe Höhe */
+.ned.dfull .rib{height:50px!important;min-height:50px!important;box-sizing:border-box;padding:0 10px;align-items:center}
+.ned.dfull .rib .rp{height:100%!important;align-items:center}
+.ned.dfull .rib .tbtn.lbl{flex-direction:row;height:36px;min-width:0;padding:0 11px;gap:7px;font-size:13px;border-radius:10px}
+.ned.dfull .rib .tbtn.lbl svg{width:18px;height:18px}
+.ned.dfull .rib .tbtn.lbl em{position:static;margin-left:2px}
+.ned.dfull .rib .tt{height:36px}
+.ned.dfull #rib-draw .inkpal{max-height:44px;overflow-x:auto;scrollbar-width:none}
