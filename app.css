@@ -5268,3 +5268,7 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 
 /* Dokumente-Seite und Ordner: kein Rahmen/Schatten um den Inhalt, einfach weiss (die Papier-Kante gilt nur fuer das Dokument) */
 .main.doc-full .ned-paper.docspaper{box-shadow:none!important;border-radius:0!important;background:#fff!important;border:0!important}
+
+/* Kopfzeile mit Suche/Filter/Plus rechts oben: immer im Vordergrund, nie vom Inhalt (Papier, Karten) ueberdeckt */
+.setcrumb{position:relative;z-index:30}
+.setcrumb .settabs.sdock{position:relative;z-index:31}
