@@ -212,7 +212,7 @@ function aiSide(open, trigger) {
   if (trigger) aiSideTools = trigger;
   $$("#ai-m,#aicb").forEach(b => { b.classList.toggle("on", open); const sv = b.querySelector("svg"); if (sv && b.id === "ai-m") { sv.outerHTML = ic(open ? "aipanelOn" : "aipanel"); b.querySelector("svg").classList.add("ic-flip"); } });
   if (open) {
-    const d = aiSideDoc(); if (d) { let dc = D.chats.find(x => x.docId === d.id); if (!dc) { dc = { id: uid(), title: "Chat – " + d.title, docId: d.id, projectId: "", instr: "", msgs: [], updated: Date.now() }; D.chats.push(dc); save(); } window.__docChat = dc.id; } else window.__docChat = null; chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
+    D.chats = D.chats || []; const d = aiSideDoc(); if (d) { let dc = D.chats.find(x => x.docId === d.id); if (!dc) { dc = { id: uid(), title: "Chat – " + d.title, docId: d.id, projectId: "", instr: "", msgs: [], updated: Date.now() }; D.chats.push(dc); save(); } window.__docChat = dc.id; } else window.__docChat = null; chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
     mountChat($("#as-box", el), false);
     el.classList.add("on"); document.body.classList.add("aiside-open");
     setTimeout(() => $(".tin", el)?.focus(), 350);
