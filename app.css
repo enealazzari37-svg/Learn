@@ -5145,3 +5145,7 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar #co-m.on .bd-me.inv{border-color:#5b3df5}
 .doc-full.ned-focus .ned-bar .nb-lw{display:none!important}
 .doc-full.ned-focus .ned-bar{justify-content:flex-end}
+.nb-vs{width:1px;height:22px;background:#e6e6ee;flex:none;margin:0 2px}
+.ned.dfull .ned-bar .aitog{width:38px;padding:0;justify-content:center;background:var(--soft)}
+.ned.dfull .ned-bar .aitog .bd-ailogo{display:block;width:22px;height:22px;background:url(logo.svg) center/contain no-repeat}
+.ned.dfull .ned-bar .aitog.on{background:#ecebf4;color:inherit;box-shadow:inset 0 0 0 1.5px #5b3df5}
