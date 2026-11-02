@@ -5187,3 +5187,19 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar .nb-lw .rt.on{color:#5b3df5;font-weight:700}
 /* AI-Symbol im Kreis statt im Quadrat */
 .ned.dfull .ned-bar .aitog{border-radius:50%!important}
+
+/* Doc-Editor: EINE gemeinsame Leiste oben (Zurück · Titel · Tabs in leichter grauer Box · rechts Auge/Mehr/AI/Profil) */
+@media (min-width:901px){
+.ned.dfull .ned-bar,body .ned.dfull .ned-bar:has(.rtabs){background:#fff!important;box-shadow:0 2px 10px rgba(20,20,50,.12),0 0 0 1px rgba(20,20,50,.06)!important;border-radius:18px!important;height:56px!important;padding:5px 8px 5px 5px;align-items:center;pointer-events:auto;gap:10px}
+.ned.dfull .ned-bar .nb-lw,.ned.dfull .ned-bar .nb-r{background:none;box-shadow:none;border-radius:0;height:auto;padding:0;flex:0 1 auto}
+.ned.dfull .ned-bar .nb-lw{flex:1 1 auto;gap:8px}
+.ned.dfull .ned-bar .nb-lw #eb{width:38px;height:38px}
+.ned.dfull .ned-bar .nb-lw .nb-ttl{height:38px;gap:9px;padding:3px 4px;border-radius:11px}
+.ned.dfull .ned-bar .nb-lw .nb-ttl .bd-th{width:30px;height:30px;border-radius:8px}
+.ned.dfull .ned-bar .nb-lw .nb-ttl .nb-name b{font-size:14.5px}
+}
+.ned.dfull .ned-bar .nb-lw .nb-vs{display:none}
+.ned.dfull .ned-bar .nb-lw .rtabs{background:var(--soft)!important;border-radius:12px;padding:3px 4px;gap:0}
+.ned.dfull .ned-bar .nb-lw .rt{font-size:13px;font-weight:600;padding:6px 13px}
+.ned.dfull .ned-bar .nb-lw .rt+.rt:before{height:14px;margin-top:-7px}
+.ned.dfull .rib{top:76px}
