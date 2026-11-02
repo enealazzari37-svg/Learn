@@ -18,14 +18,30 @@ const MODELS = [
   { id: "groq:llama-3.3-70b-versatile", p: "groq", m: "llama-3.3-70b-versatile" },
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
-/* OpenRouter: ausschliesslich kostenlose Modelle. Die IDs wechseln bei OpenRouter öfter – bei Bedarf in Vercel mit OPENROUTER_MODELS überschreiben. */
-const OR_DEFAULT = ["openai/gpt-oss-120b:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-3-27b-it:free"];
-const OR_MODELS = () => [...new Set((process.env.OPENROUTER_MODELS || OR_DEFAULT.join(",")).split(",").map(x => x.trim()).filter(x => /^[\w.\-\/]+:free$/.test(x)))].slice(0, 8).map(m => ({ id: "or:" + m, p: "openrouter", m }));
+/* OpenRouter: ausschliesslich kostenlose Modelle (…:free). Die echten IDs wechseln bei OpenRouter öfter, deshalb werden sie über den Namen aus der OpenRouter-Modellliste aufgelöst (1 Std. gecacht);
+   "guess" ist nur der Notnagel, falls die Liste nicht erreichbar ist. Die ids "or:…" sind stabil und stehen so auch in der App. */
+const OR_DEF = [
+  { id: "or:nemotron-vl", re: /nemotron.*3\.5.*super.*vl|nemotron.*super.*vl/i, guess: "nvidia/nemotron-3.5-super-vl:free" },
+  { id: "or:gemma4-26b", re: /gemma.*4.*26b/i, guess: "google/gemma-4-26b-a4b-it:free" },
+  { id: "or:gemma4-31b", re: /gemma.*4.*31b/i, guess: "google/gemma-4-31b-it:free" },
+];
+let orCache = { at: 0, list: [] };
+async function resolveOR() {
+  if (orCache.list.length && Date.now() - orCache.at < 36e5) return orCache.list;
+  let free = [];
+  try {
+    const r = await fetch("https://openrouter.ai/api/v1/models", { signal: AbortSignal.timeout(5000) });
+    free = ((await r.json()).data || []).filter(m => /:free$/.test(m.id || ""));
+  } catch {}
+  const list = OR_DEF.map(d => ({ id: d.id, p: "openrouter", m: (free.find(m => d.re.test(m.id) || d.re.test(m.name || "")) || { id: d.guess }).id }));
+  orCache = { at: free.length ? Date.now() : Date.now() - 35 * 6e4, list };   // ohne Liste in 1 Min. erneut versuchen
+  return list;
+}
 const L = require("./_lib");
 /* Studix-Token = echte Token ÷ 10, dazu Gewicht je Modell: Gemini Flash/Lite 1×, Groq 0,5× */
 const WEIGHT = id => /^(groq|or):/.test(id) ? 0.5 : /pro/.test(id) ? 5 : 1;
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY, openrouter: !!process.env.OPENROUTER_API_KEY });
-const available = () => { const h = have(); return [...MODELS, ...OR_MODELS()].filter(x => h[x.p]); };
+const available = () => { const h = have(); return [...MODELS, ...OR_DEF.map(d => ({ id: d.id, p: "openrouter" }))].filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
 /* Quellen: Gemini „Grounding mit Google Suche“ liefert Fundstellen; wir hängen [n]-Marker an die belegten Sätze */
@@ -94,13 +110,15 @@ module.exports = async function handler(req, res) {
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */
-  const orList = h.openrouter ? OR_MODELS() : [], want = [...MODELS, ...orList].find(x => x.id === wanted && h[x.p]);
+  const orList = h.openrouter ? await resolveOR() : [], want = [...MODELS, ...orList].find(x => x.id === wanted && h[x.p]);
   const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" || want?.p === "openrouter" ? [...(want.p === "groq" ? groqList : orList), ...geminiList, ...groqList] : [...geminiList, ...groqList]), ...orList].filter(Boolean);
   if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
+  /* Autokorrektur/Hintergrund (bg): nie Gemini; Reihenfolge mischen, damit viele gleichzeitige Nutzer die Limits der Anbieter verteilen */
+  if (bg) { cands = cands.filter(c => c.p !== "gemini"); for (let k = cands.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [cands[k], cands[r]] = [cands[r], cands[k]]; } }
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
-  if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
+  if (!cands.length) return res.status(422).json({ error: bg ? "Für die Autokorrektur ist kein Groq- oder OpenRouter-Modell eingerichtet." : "Für Bilder wird GEMINI_API_KEY benötigt." });
 
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 28000);
   try {
