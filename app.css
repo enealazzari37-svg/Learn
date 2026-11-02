@@ -5203,3 +5203,17 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar .nb-lw .rt{font-size:13px;font-weight:600;padding:6px 13px}
 .ned.dfull .ned-bar .nb-lw .rt+.rt:before{height:14px;margin-top:-7px}
 .ned.dfull .rib{top:76px}
+
+/* Doc-Editor: Leisten bis an die Ecken, AI wie die anderen Boxen, Profilkreis robust (+ und Pfeil per CSS) */
+.ned.dfull .ned-bar,body .ned.dfull .ned-bar:has(.rtabs){max-width:none!important;width:calc(100% - 24px)!important}
+.ned.dfull .rib{width:calc(100% - 24px)!important;max-width:none!important;box-sizing:border-box}
+.ned.dfull .rib .rp{justify-content:flex-start}
+.ned.dfull .ned-bar .aitog,.ned.dfull .ned-bar .aitog.on{border-radius:11px!important;background:var(--soft)!important;color:inherit;box-shadow:none;width:38px;height:38px}
+.ned.dfull .ned-bar .aitog:hover{background:#ecebf4!important}
+.ned.dfull .ned-bar .aitog.on{box-shadow:inset 0 0 0 1.5px #5b3df5}
+.ned.dfull .ned-bar #co-m .bd-me.inv{position:relative;display:block!important}
+.ned.dfull .ned-bar #co-m .bd-me.inv svg{display:none!important}
+.ned.dfull .ned-bar #co-m .bd-me.inv:before,.ned.dfull .ned-bar #co-m .bd-me.inv:after{content:"";position:absolute;left:50%;top:50%;background:#6a6a78;border-radius:1px;transform:translate(-50%,-50%)}
+.ned.dfull .ned-bar #co-m .bd-me.inv:before{width:12px;height:1.8px}.ned.dfull .ned-bar #co-m .bd-me.inv:after{width:1.8px;height:12px}
+.ned.dfull .ned-bar #co-m>svg{display:none!important}
+.ned.dfull .ned-bar #co-m:after{content:"";width:7px;height:7px;border-right:2px solid #6a6a78;border-bottom:2px solid #6a6a78;transform:rotate(45deg) translate(-2px,-2px);margin:0 6px 0 4px;flex:none}
