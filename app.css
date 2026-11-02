@@ -5272,3 +5272,50 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 /* Kopfzeile mit Suche/Filter/Plus rechts oben: immer im Vordergrund, nie vom Inhalt (Papier, Karten) ueberdeckt */
 .setcrumb{position:relative;z-index:30}
 .setcrumb .settabs.sdock{position:relative;z-index:31}
+
+/* ===== PDF-Editor: Werkzeugleiste für iPad und schmale Fenster =====
+   Zeile 1: Zurück · Seiten · Titel  …  Text/Markieren/Zeichnen · Suche · Mehr · AI
+   Zeile 2: Werkzeuge des aktuellen Modus (Text oder Stift), wischbar – nichts wird abgeschnitten.
+   Ab 1240px Leistenbreite passt alles in eine Zeile (Container-Query auf die Leiste selbst). */
+body .ned.dfull.pdfed .ned-bar,body .ned.pdfed .ned-bar{display:flex!important;flex-wrap:wrap;align-items:center;height:auto!important;min-height:56px;column-gap:10px;row-gap:6px;padding:8px 12px!important;container-type:inline-size;grid-template-columns:none!important}
+.pdfed .ned-bar .nb-l{order:1;flex:1 1 180px;min-width:0;gap:4px}
+.pdfed .ned-bar .nb-name{min-width:0;flex:1 1 auto}
+.pdfed .ned-bar .nb-name b{max-width:100%}
+.pdfed .ned-bar .nb-r{order:2;flex:none;margin-left:auto;gap:6px;grid-column:auto!important;grid-row:auto!important}
+.pdfed .ned-bar .ned-tools,.pdfed .ned-bar .inkpal{order:3;flex:1 1 100%;min-width:0;max-width:100%;justify-content:flex-start!important;justify-self:auto!important;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:2px 0 2px;grid-column:auto!important;grid-row:auto!important;transform:none!important}
+.pdfed .ned-bar .ned-tools::-webkit-scrollbar,.pdfed .ned-bar .inkpal::-webkit-scrollbar{display:none}
+.pdfed .ned-bar .inkpal:not(.show){display:none!important}
+.pdfed .ned-bar .inkpal{flex-wrap:wrap;row-gap:4px;overflow:visible}
+.pdfed .ned-bar .ned-tools{flex-wrap:wrap;row-gap:4px;overflow:visible}
+.pdfed .ned-bar .inkpal>*{flex:none}
+.drawing .pdfed .ned-bar .ned-tools{display:none!important}
+.pdfed .ned-bar .tt-lbl{display:inline;flex:none}
+.pdfed .ned-bar .ned-tools>*{flex:none}
+@container (min-width:1240px){
+  .pdfed .ned-bar .ned-tools,.pdfed .ned-bar .inkpal{order:2;flex:0 1 auto}
+  .pdfed .ned-bar .nb-r{order:3;margin-left:0}
+  .pdfed .ned-bar .nb-l{flex:1 1 160px}
+}
+@container (max-width:760px){
+  .pdfed .ned-bar .nb-r .saved,.pdfed .ned-bar .tt-lbl,.pdfed .ned-bar .tt-lbl+.sep{display:none}
+}
+/* Lücken-Knopf (eigene Klasse – .gl ist schon das Raster-Hilfslinien-Element) */
+.pdfed #gapt .gapl{font-size:13px;font-weight:600;white-space:nowrap}
+.pdfed #gapt .gapl b{font-weight:700;color:#5b3df5;margin-left:2px}
+/* Modus-Schalter mit drei Stellungen */
+.modesw.m3{grid-template-columns:1fr 1fr 1fr}
+.modesw.m3 .knob{width:calc(33.333% - 2px)}
+.modesw.m3[data-m=hl] .knob{transform:translateX(100%)}
+.modesw.m3[data-m=draw] .knob{transform:translateX(200%)}
+/* Zoom: Seitenbreite folgt --z; ab 100 % lässt sich seitlich scrollen */
+.pdfed .pdfpaper{overflow-x:auto}
+.pdfed .pdfpages{width:calc(100% * var(--z,1));min-width:100%;gap:calc(18px * var(--k,1))}
+.pdfed .pdfpg{width:min(calc(860px * var(--z,1)),calc(100% - 28px))}
+.pdfpager .pzv{border:0;background:none;font:600 13px/1 inherit;font-family:inherit;color:#0f0f12;min-width:48px;height:34px;border-radius:999px;cursor:pointer;padding:0 6px}
+.pdfpager .pzv:hover{background:#f3f3f6}
+.pdfpager .pz svg{width:18px;height:18px;transform:none!important}
+.pdfpager #pgp svg{transform:rotate(90deg)}
+.pdfpager #pgx svg{transform:rotate(-90deg)}
+.pdfpager .pz:disabled{opacity:.35}
+.pdfpager .psep{width:1px;height:20px;background:#e6e6ee;margin:0 4px}
+@media (max-width:600px){.pdfpager .pz,.pdfpager .pzv,.pdfpager .psep{display:none}}

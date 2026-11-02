@@ -465,16 +465,23 @@ function localQuiz(text, n = 6) {
 }
 const htmlToText = h => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n$&").replace(/<br\s*\/?>/gi, "\n"); return d.textContent.replace(/\n{3,}/g, "\n\n").trim(); };
 
-async function loadScript(src) { return new Promise((res, rej) => { if ($(`script[src="${src}"]`)) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+/* lädt ein Skript genau einmal; wer es gleichzeitig anfordert, wartet auf dasselbe Laden (vorher kam ein zweiter Aufruf zurück, bevor das Skript fertig war) */
+const _scripts = {};
+function loadScript(src) {
+  if (_scripts[src]) return _scripts[src];
+  if (!$(`script[src="${src}"][data-ld]`) && $(`script[src="${src}"]`)) return Promise.resolve();
+  return (_scripts[src] = new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.dataset.ld = "1"; s.onload = res; s.onerror = () => { s.remove(); delete _scripts[src]; rej(new Error("load " + src)); }; document.head.appendChild(s); }));
+}
 async function fileText(b, name, mime) {
   let t = "";
   try {
     if (/^text\//.test(mime) || /\.(txt|md|csv|json)$/i.test(name)) t = await b.text();
     else if (mime === "application/pdf" || /\.pdf$/i.test(name)) {
-      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      const pdf = await pdfjsLib.getDocument({ data: await b.arrayBuffer() }).promise;
-      for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) { const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x => x.str).join(" ") + "\n\n"; }
+      /* dieselbe pdf.js-Instanz wie der PDF-Editor (Worker als same-origin Blob) – früher wurde hier der Worker auf die CDN-Adresse umgestellt,
+         danach liess sich eine PDF auf dem iPad nicht mehr öffnen, sobald Studix AI einmal Dokumente gelesen hatte */
+      const lib = await loadPdfLib(), pdf = await lib.getDocument({ data: await b.arrayBuffer() }).promise;
+      try { for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) { const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x => x.str).join(" ") + "\n\n"; } }
+      finally { pdf.destroy(); }
     }
   } catch (e) { toast("Text konnte nicht gelesen werden"); }
   return t;

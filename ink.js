@@ -22,7 +22,10 @@ function createInk(paper, d, opts = {}) {
   const base = document.createElement("canvas"), bctx = base.getContext("2d");
   const ring = document.createElement("div"); ring.className = "ink-ring"; paper.appendChild(ring);
   let W = 0, H = 0, dpr = 1, dirty = true, raf = 0;
-  const cx = () => W / 2;
+  /* opts.scale (PDF): Striche liegen in Seiten-Koordinaten und werden mit der aktuellen Seitenbreite skaliert –
+     so bleiben Markierungen an derselben Textstelle, wenn sich die Breite ändert (Chat öffnen, iPad drehen, Zoom) */
+  const K = () => { const k = opts.scale ? +opts.scale() : 1; return k > 0 && isFinite(k) ? k : 1; };
+  const cx = () => W / 2 / K();
   const onChange = opts.onChange || (() => {});
   const tl = () => st.tmp || st.tool;
   const sizeKey = () => ({ pen: "pen", hl: "hl", eraser: "eraser" }[tl()] || "shape");
@@ -81,11 +84,11 @@ function createInk(paper, d, opts = {}) {
     c.restore();
   }
   const triPts = s => { const [a, b] = s.pts, l = Math.min(a[0], b[0]), r = Math.max(a[0], b[0]), t = Math.min(a[1], b[1]), bt = Math.max(a[1], b[1]); return [[(l + r) / 2, t], [r, bt], [l, bt]]; };
-  function bake() { bctx.setTransform(dpr, 0, 0, dpr, 0, 0); bctx.clearRect(0, 0, W, H); for (const s of st.strokes) if (!st.sel?.has(s)) draw(bctx, s); dirty = false; }
+  function bake() { bctx.setTransform(1, 0, 0, 1, 0, 0); bctx.clearRect(0, 0, base.width, base.height); const k = K(); bctx.setTransform(dpr * k, 0, 0, dpr * k, 0, 0); for (const s of st.strokes) if (!st.sel?.has(s)) draw(bctx, s); dirty = false; }
   function frame() {
     if (!W) return; if (dirty) bake();
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(base, 0, 0);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr * K(), 0, 0, dpr * K(), 0, 0);
     if (st.sel) st.sel.forEach(s => draw(ctx, s));
     if (st.cur) draw(ctx, st.cur, st.pred);
     if (st.sel?.size) {
@@ -164,7 +167,7 @@ function createInk(paper, d, opts = {}) {
   /* ---------- pointer input ---------- */
   let drawing = false, erased = false, pid = -1, rc = null, sm = [0, 0, .5, 0];
   const SHAPES = ["line", "arrow", "rect", "ellipse", "tri"];
-  const pos = (e, r = rc || cv.getBoundingClientRect()) => [e.clientX - r.left - r.width / 2, e.clientY - r.top];
+  const pos = (e, r = rc || cv.getBoundingClientRect()) => { const k = K(); return [(e.clientX - r.left - r.width / 2) / k, (e.clientY - r.top) / k]; };
   const effTool = e => (e.pointerType === "pen" && (e.button === 5 || (e.buttons & 32) || e.button === 2 || (e.buttons & 2))) ? "eraser" : null;
   const tiltOf = e => Math.min(1, Math.hypot(e.tiltX || 0, e.tiltY || 0) / 90);
 
@@ -197,7 +200,7 @@ function createInk(paper, d, opts = {}) {
 
   const hoverRing = e => {
     const t = tl(); if (!st.on || e.pointerType === "touch" || !["pen", "hl", "eraser"].includes(t)) return ring.classList.remove("on");
-    const dia = t === "hl" ? S.sizes.hl * 4 : t === "eraser" ? S.sizes.eraser : Math.max(4, S.sizes.pen), r = cv.getBoundingClientRect();
+    const dia = (t === "hl" ? S.sizes.hl * 4 : t === "eraser" ? S.sizes.eraser : Math.max(4, S.sizes.pen)) * K(), r = cv.getBoundingClientRect();
     ring.className = "ink-ring on" + (t === "eraser" ? " er" : ""); ring.style.width = ring.style.height = dia + "px";
     ring.style.transform = `translate(${e.clientX - r.left - dia / 2}px,${e.clientY - r.top - dia / 2}px)`;
     ring.style.background = t === "eraser" ? "" : st.color + (t === "hl" ? "55" : "99");
@@ -295,7 +298,7 @@ function createInk(paper, d, opts = {}) {
         const gone = new Set(st.strokes.filter(x => s.pts.some(q => hit(x, q[0], q[1], 4))));
         if (gone.size) { snap(); st.strokes = st.strokes.filter(x => !gone.has(x)); render(); changed(); if (navigator.vibrate) navigator.vibrate(8); return; }
       }
-      snap(); st.strokes.push(s); if (!dirty) { bctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(bctx, s); } sched(); changed();
+      snap(); st.strokes.push(s); if (!dirty) { bctx.setTransform(dpr * K(), 0, 0, dpr * K(), 0, 0); draw(bctx, s); } sched(); changed();
     }
   };
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", e => { if (e.pointerType === "touch") touchUp(e); if (drawing && e.pointerId === pid) abort(); });
@@ -372,7 +375,7 @@ function createInk(paper, d, opts = {}) {
   if (opts.audio) $p("#ip-mic").onclick = () => opts.audio.toggle();
   /* sticker: an emoji placed at the visible centre, immediately selected so it can be moved / scaled with the lasso */
   function addSticker(e) {
-    const r = paper.getBoundingClientRect(), y = Math.max(40, Math.min(H - 40, innerHeight / 2 - r.top)), s = { type: "sticker", e, color: "#000", size: 56, pts: [[0, y]] };
+    const r = paper.getBoundingClientRect(), k = K(), y = Math.max(40, Math.min(H / k - 40, (innerHeight / 2 - r.top) / k)), s = { type: "sticker", e, color: "#000", size: 56, pts: [[0, y]] };
     const t = opts.audio?.clock?.(); if (t != null) { s.t = t; s.a = opts.audio.id; }
     snap(); st.strokes.push(s); setTool("lasso"); setSel(new Set([s])); changed();
   }
@@ -404,6 +407,8 @@ function createInk(paper, d, opts = {}) {
   applyPen(); paintPens(); setColor(st.color, true); setTool(st.tool); applyGrid(); updUI();
   return {
     st, canvas: cv,
+    tool(t) { setTool(t); },
+    relayout() { W = 0; size(); },
     mic(on) { $p("#ip-mic")?.classList.toggle("on", !!on); },
     load(strokes) { st.strokes = Array.isArray(strokes) ? strokes : []; st.sel = null; size(); dirty = true; frame(); updUI(); },
     mode(on) { st.on = !!on; paper.classList.toggle("inking", !!on); setTool(st.tool); pal.classList.toggle("show", !!on); if (!on) { closePop(); abort(); ring.classList.remove("on"); } },
