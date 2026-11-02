@@ -5126,3 +5126,22 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .sdock .ws-av i.inv,.ws-av i.inv{background:#fff!important;color:#6a6a78;border:1.5px dashed #c5c5d0;box-shadow:none;margin-left:-3px;box-sizing:border-box}
 .sdock .ws-av i.inv svg,.ws-av i.inv svg{width:14px;height:14px;position:static;margin:0;display:block}
 .sdock .ws-av>svg,.ws-av>svg{width:15px;height:15px;color:#6a6a78;flex:none;margin-left:3px}
+
+/* Doc-Editor: zwei getrennte Leisten wie im Whiteboard – links Zurück/Titel/Tabs, rechts Auge · Personen · ⋯ · AI */
+@media (min-width:901px){
+.ned.dfull .ned-bar,body .ned.dfull .ned-bar:has(.rtabs){display:flex!important;justify-content:space-between;align-items:flex-start;gap:12px;background:none!important;box-shadow:none!important;border-radius:0;padding:0;height:auto!important;width:calc(100% - 24px);pointer-events:none}
+.ned.dfull .ned-bar .nb-lw,.ned.dfull .ned-bar .nb-r{pointer-events:auto;display:flex;align-items:center;gap:6px;height:56px;box-sizing:border-box;padding:5px 8px 5px 5px;background:#fff;border-radius:18px;box-shadow:0 2px 10px rgba(20,20,50,.12),0 0 0 1px rgba(20,20,50,.06);min-width:0}
+.ned.dfull .ned-bar .nb-lw{flex:0 1 auto}
+.ned.dfull .ned-bar .nb-lw .rtabs{grid-column:auto;justify-self:auto}
+.ned.dfull .ned-bar .nb-r{flex:none;justify-self:auto}
+}
+.ned.dfull .ned-bar #co-m{background:var(--soft);color:inherit}.ned.dfull .ned-bar #co-m:hover{background:#ecebf4}
+.ned.dfull .ned-bar #co-m .ic{width:15px;height:15px;color:#6a6a78}
+.ned.dfull .ned-bar #co-m .bd-me{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:none;box-shadow:0 0 0 2px #fff}
+.ned.dfull .ned-bar #co-m .bd-avs{display:flex}.ned.dfull .ned-bar #co-m .bd-me+.bd-me{margin-left:-3px}
+.ned.dfull .ned-bar #co-m .bd-me.inv{background:#fff;color:#6a6a78;border:1.5px dashed #c5c5d0;box-shadow:none;box-sizing:border-box}
+.ned.dfull .ned-bar #co-m .bd-me.inv svg{width:14px;height:14px;color:#6a6a78;margin:0;display:block}
+.ned.dfull .ned-bar #co-m.on{background:var(--soft);color:inherit}
+.ned.dfull .ned-bar #co-m.on .bd-me.inv{border-color:#5b3df5}
+.doc-full.ned-focus .ned-bar .nb-lw{display:none!important}
+.doc-full.ned-focus .ned-bar{justify-content:flex-end}
