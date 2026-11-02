@@ -5149,3 +5149,17 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar .aitog{width:38px;padding:0;justify-content:center;background:var(--soft)}
 .ned.dfull .ned-bar .aitog .bd-ailogo{display:block;width:22px;height:22px;background:url(logo.svg) center/contain no-repeat}
 .ned.dfull .ned-bar .aitog.on{background:#ecebf4;color:inherit;box-shadow:inset 0 0 0 1.5px #5b3df5}
+
+/* Doc-Editor links: Zurück + Titel-Pille (Vorschau, Name, Pfeil) wie im Whiteboard */
+.ned.dfull .nb-l{gap:6px}
+.ned.dfull .nb-ttl{display:flex;align-items:center;gap:9px;height:38px;padding:3px 4px 3px 4px;border-radius:11px;background:var(--soft);min-width:0;max-width:300px}.ned.dfull .nb-ttl:hover{background:#ecebf4}
+.ned.dfull .nb-ttl .bd-th{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#eceaff,#ffeedd);display:grid;place-items:center;flex:none;color:#5b3df5}.ned.dfull .nb-ttl .bd-th svg{width:16px;height:16px;color:#5b3df5}
+.ned.dfull .nb-ttl .nb-name b{font-size:14.5px;font-weight:600;margin:0;padding:0}.ned.dfull .nb-ttl .nb-name b:hover{background:none}
+.ned.dfull .nb-ttl .nb-in{font-size:14.5px;font-weight:600;max-width:200px}
+.ned.dfull .nb-ttl .nb-folder{display:none}
+.ned.dfull .nb-chv{display:grid;place-items:center;width:26px;height:30px;color:#6a6a78;flex:none}.ned.dfull .nb-chv svg{width:15px;height:15px}
+.ned.dfull .ned-bar #eb{background:none}.ned.dfull .ned-bar #eb:hover{background:var(--soft)}
+.ned.dfull .ned-bar .nb-lw .rtabs{background:none;padding:0;gap:2px}
+.ned.dfull .ned-bar .nb-lw .rt{background:none;color:#4a4a58;font-size:14px;padding:8px 12px;border-radius:11px}
+.ned.dfull .ned-bar .nb-lw .rt:hover{background:var(--soft);color:#0f0f12}
+.ned.dfull .ned-bar .nb-lw .rt.on{background:var(--soft);color:#0f0f12;box-shadow:inset 0 0 0 1.5px #5b3df5}
