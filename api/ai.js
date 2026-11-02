@@ -1,10 +1,12 @@
-/* Studix AI proxy (Vercel serverless function) – Google Gemini und/oder Groq.
+/* Studix AI proxy (Vercel serverless function) – Google Gemini, Groq und/oder OpenRouter (nur :free-Modelle).
    Vercel → Project Settings → Environment Variables:
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
+     OPENROUTER_API_KEY (kostenloser Key: https://openrouter.ai/keys) – nutzt nur kostenlose Modelle (…:free)
+     OPENROUTER_MODELS  (optional, kommagetrennt, nur …:free-IDs; Standard siehe OR_DEFAULT unten)
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
      AI_FREE_WINDOW_TOKENS (optional: Token pro Woche für Gratis-Konten, Standard 12500 (Studix-Token = echte Token ÷ 10); 0 = unbegrenzt), AI_PRO_WINDOW_TOKENS (Studix Study Pro, Standard 120000) und AI_WINDOW_HOURS (Länge des Fensters, Standard 168 = eine Woche). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
-   Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
+   Mindestens einer der Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
 /* Wählbare Modelle: id wird vom Browser geschickt */
@@ -16,11 +18,14 @@ const MODELS = [
   { id: "groq:llama-3.3-70b-versatile", p: "groq", m: "llama-3.3-70b-versatile" },
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
+/* OpenRouter: ausschliesslich kostenlose Modelle. Die IDs wechseln bei OpenRouter öfter – bei Bedarf in Vercel mit OPENROUTER_MODELS überschreiben. */
+const OR_DEFAULT = ["openai/gpt-oss-120b:free", "meta-llama/llama-3.3-70b-instruct:free", "google/gemma-3-27b-it:free"];
+const OR_MODELS = () => [...new Set((process.env.OPENROUTER_MODELS || OR_DEFAULT.join(",")).split(",").map(x => x.trim()).filter(x => /^[\w.\-\/]+:free$/.test(x)))].slice(0, 8).map(m => ({ id: "or:" + m, p: "openrouter", m }));
 const L = require("./_lib");
 /* Studix-Token = echte Token ÷ 10, dazu Gewicht je Modell: Gemini Flash/Lite 1×, Groq 0,5× */
-const WEIGHT = id => /pro/.test(id) && !/^groq:/.test(id) ? 5 : /^groq:/.test(id) ? 0.5 : 1;
-const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY });
-const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
+const WEIGHT = id => /^(groq|or):/.test(id) ? 0.5 : /pro/.test(id) ? 5 : 1;
+const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY, openrouter: !!process.env.OPENROUTER_API_KEY });
+const available = () => { const h = have(); return [...MODELS, ...OR_MODELS()].filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
 /* Quellen: Gemini „Grounding mit Google Suche“ liefert Fundstellen; wir hängen [n]-Marker an die belegten Sätze */
@@ -52,24 +57,25 @@ async function callGemini(model, key, { system, messages, max, image, signal, so
   if (text && sources) { const c = withCitations(text, j.candidates?.[0]?.groundingMetadata); text = c.text; src = c.sources; }
   return { status: r.status, ok: r.ok, text, sources: src, error: j.error?.message, blocked: j.promptFeedback?.blockReason, tokens: j.usageMetadata?.totalTokenCount || 0 };
 }
-async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal, cap }) {
+async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal, cap }, url = "https://api.groq.com/openai/v1/chat/completions", extra = {}) {
   const msgs = [{ role: "system", content: String(system).slice(0, 30000) || "You are a helpful study assistant." }, ...messages.slice(-24).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content ?? "").slice(0, 60000) || " " }))];
-  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST", signal, headers: { "content-type": "application/json", authorization: "Bearer " + key },
+  const r = await fetch(url, {
+    method: "POST", signal, headers: { "content-type": "application/json", authorization: "Bearer " + key, ...extra },
     body: JSON.stringify({ model, messages: msgs, max_tokens: Math.max(64, Math.min(cap || 2048, +max || 1024)), temperature }),
   });
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? String(j.choices?.[0]?.message?.content || "") : "";
   text = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-  return { status: r.status, ok: r.ok, text, error: j.error?.message, tokens: j.usage?.total_tokens || 0 };
+  return { status: r.status, ok: r.ok, text, error: typeof j.error === "string" ? j.error : j.error?.message, tokens: j.usage?.total_tokens || 0 };
 }
+const callOpenRouter = (model, key, a) => callGroq(model, key, a, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "https://studix.space", "X-Title": "Studix" });
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const h = have();
-  if (req.method === "GET") return res.status(200).json({ ok: true, freeTokens: L.FREE_TOKENS, proTokens: L.PRO_TOKENS, essentialTokens: L.ESS_TOKENS, essentialSession: L.ESS_S, freeSession: L.FREE_S, proSession: L.PRO_S, sessionHours: L.SESSION_H, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
+  if (req.method === "GET") return res.status(200).json({ ok: true, freeTokens: L.FREE_TOKENS, proTokens: L.PRO_TOKENS, essentialTokens: L.ESS_TOKENS, essentialSession: L.ESS_S, freeSession: L.FREE_S, proSession: L.PRO_S, sessionHours: L.SESSION_H, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq || h.openrouter, gemini: h.gemini, groq: h.groq, openrouter: h.openrouter, models: available().map(x => x.id) });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  if (!h.gemini && !h.groq) return res.status(503).json({ error: "Weder GEMINI_API_KEY noch GROQ_API_KEY ist in Vercel gesetzt." });
+  if (!h.gemini && !h.groq && !h.openrouter) return res.status(503).json({ error: "Weder GEMINI_API_KEY, GROQ_API_KEY noch OPENROUTER_API_KEY ist in Vercel gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
   let { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
@@ -88,10 +94,10 @@ module.exports = async function handler(req, res) {
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */
-  const want = MODELS.find(x => x.id === wanted && h[x.p]);
+  const orList = h.openrouter ? OR_MODELS() : [], want = [...MODELS, ...orList].find(x => x.id === wanted && h[x.p]);
   const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
-  let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
+  let cands = [want, ...(want?.p === "groq" || want?.p === "openrouter" ? [...(want.p === "groq" ? groqList : orList), ...geminiList, ...groqList] : [...geminiList, ...groqList]), ...orList].filter(Boolean);
   if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
@@ -101,7 +107,7 @@ module.exports = async function handler(req, res) {
     let last = null;
     for (const c of cands) {
       const args = { cap: acct?.pro ? 6144 : acct?.tier === "essential" ? 4096 : 2048, system, messages, max, image, sources: !!sources, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
-      const out = c.p === "gemini" ? await callGemini(c.m, process.env.GEMINI_API_KEY, args) : await callGroq(c.m, process.env.GROQ_API_KEY, args);
+      const out = c.p === "gemini" ? await callGemini(c.m, process.env.GEMINI_API_KEY, args) : c.p === "openrouter" ? await callOpenRouter(c.m, process.env.OPENROUTER_API_KEY, args) : await callGroq(c.m, process.env.GROQ_API_KEY, args);
       last = { ...out, c };
       if (out.ok && out.text) {
         let usage = null;
@@ -109,7 +115,7 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [], usage });
       }
       if (out.ok && !out.text) continue;                                // leere Antwort → nächstes Modell
-      if (![404, 429, 500, 502, 503].includes(out.status)) break;      // echter Fehler (z. B. 400/401) → abbrechen
+      if (![402, 404, 408, 429, 500, 502, 503].includes(out.status)) break;      // echter Fehler (z. B. 400/401) → abbrechen
     }
     const st = last?.status || 502;
     if (last?.ok) return res.status(422).json({ error: last.blocked ? "Die Anfrage wurde von der KI blockiert." : "Leere Antwort der KI." });

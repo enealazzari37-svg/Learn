@@ -399,10 +399,13 @@ const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss"
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
   ["gemini-flash-lite-latest", "Flash Lite", "Standard", "Gemini"], ["gemini-flash-latest", "Flash", "Besser", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve", "Gemini"],
-  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"]];
-const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
+  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"],
+  ["or:openai/gpt-oss-120b:free", "GPT-OSS (OR)", "Kostenlos · zählt 0,5×", "OpenRouter"], ["or:meta-llama/llama-3.3-70b-instruct:free", "Llama 70B (OR)", "Kostenlos · zählt 0,5×", "OpenRouter"], ["or:google/gemma-3-27b-it:free", "Gemma 27B (OR)", "Kostenlos · zählt 0,5×", "OpenRouter"]];
+const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq", OpenRouter: "OpenRouter" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
-const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); return L; };
+const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !/^(groq|or):/.test(m[0]));
+  if (ids) ids.filter(i => /^or:/.test(i) && !AI_MODELS.some(m => m[0] === i)).forEach(i => L.push([i, i.slice(3).replace(/:free$/, "").split("/").pop(), "Kostenlos · zählt 0,5×", "OpenRouter"]));   /* eigene OPENROUTER_MODELS vom Server */
+  return L; };
 /* Standard ist das erste Modell der Liste (Flash Lite); gespeicherte, nicht mehr vorhandene Modelle (z. B. Pro) fallen darauf zurück */
 const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); return (mine || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
