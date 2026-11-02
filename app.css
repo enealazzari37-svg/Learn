@@ -5217,3 +5217,7 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar #co-m .bd-me.inv:before{width:12px;height:1.8px}.ned.dfull .ned-bar #co-m .bd-me.inv:after{width:1.8px;height:12px}
 .ned.dfull .ned-bar #co-m>svg{display:none!important}
 .ned.dfull .ned-bar #co-m:after{content:"";width:7px;height:7px;border-right:2px solid #6a6a78;border-bottom:2px solid #6a6a78;transform:rotate(45deg) translate(-2px,-2px);margin:0 6px 0 4px;flex:none}
+
+/* Doc-Editor: keine graue Rundkasten-Fläche mehr – nur das Papier, mit feiner Kante/Schatten damit man sieht, wo das Dokument ist */
+.main.doc-full .ned-paper{background-color:#fff!important;border-radius:14px!important;margin:12px!important;min-height:calc(100dvh - 160px);overflow:hidden;box-shadow:0 0 0 1px #e3e3ec,0 8px 28px rgba(20,20,50,.07)!important}
+.main.doc-full{background:#fff!important}
