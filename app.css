@@ -5265,3 +5265,6 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .co-pop .bd-me{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;flex:none;font-style:normal}
 .co-pop .note{font-size:12.5px;color:#8a8a98}
 .co-pop .co-end{margin-top:12px;width:100%;height:36px;border-radius:11px;background:#fdeeee;color:#c0392b;font-size:13px;font-weight:600}.co-pop .co-end:hover{background:#fbdede}
+
+/* Dokumente-Seite und Ordner: kein Rahmen/Schatten um den Inhalt, einfach weiss (die Papier-Kante gilt nur fuer das Dokument) */
+.main.doc-full .ned-paper.docspaper{box-shadow:none!important;border-radius:0!important;background:#fff!important;border:0!important}
