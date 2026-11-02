@@ -5163,3 +5163,10 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .ned-bar .nb-lw .rt{background:none;color:#4a4a58;font-size:14px;padding:8px 12px;border-radius:11px}
 .ned.dfull .ned-bar .nb-lw .rt:hover{background:var(--soft);color:#0f0f12}
 .ned.dfull .ned-bar .nb-lw .rt.on{background:var(--soft);color:#0f0f12;box-shadow:inset 0 0 0 1.5px #5b3df5}
+/* Profil-Kreis-Button im Doc-Editor: eigene Basis-Styles (die .bd-col-Regeln gelten sonst nur im Whiteboard) */
+.ned.dfull .ned-bar #co-m{display:flex;flex-direction:row;align-items:center;gap:6px;height:38px;width:auto;min-width:0;padding:0 8px 0 5px;border-radius:11px;flex:none;line-height:1}
+.ned.dfull .ned-bar #co-m .bd-avs{display:flex;flex-direction:row;align-items:center}
+.ned.dfull .ned-bar #co-m .bd-me{width:30px;height:30px;min-width:30px;position:static;font-style:normal;line-height:1}
+.ned.dfull .ned-bar #co-m .bd-me.inv{display:grid;place-items:center;padding:0}
+.ned.dfull .ned-bar #co-m .bd-me.inv svg{width:14px;height:14px;position:static;display:block;stroke:currentColor;fill:none}
+.ned.dfull .ned-bar #co-m>svg{width:15px;height:15px;flex:none;position:static}
