@@ -5234,6 +5234,8 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 /* Doc-Editor: Papier beginnt schon hinter den Leisten (Oberkante/Linien nicht sichtbar, scrollt unter den Leisten durch) */
 @media (min-width:901px){
 .main.doc-full .ned-paper{margin-top:-28px!important;padding-top:64px!important;border-top-left-radius:0!important;border-top-right-radius:0!important;min-height:calc(100dvh - 100px)}
+}
+
 /* Studix AI Seitenleiste: Dokument/Whiteboard wird von rechts nach links geschoben, das Panel sitzt direkt daneben.
    Muss spaeter und spezifischer als "#app #main.doc-full{margin:… !important}" und "html.embed … margin" stehen. */
 @media (min-width:901px){
