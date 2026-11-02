@@ -26,9 +26,20 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const me = { key: uid(), name: coName() }; me.color = meCol();
   const av = $("#co-av", m), btn = $("#co-m", m); let ch = null, conn = "", peers = {}, lastType = 0, pend = null, tPush = 0, tSave = 0, dead = false;
   const state = () => ({ html: lumiHtml(body), tb: TBX.get(), ink: ink.st.strokes });
+  let peerList = [], slot = 0, avTimer = 0;
+  /* Button: ich · 2. Slot (Teilnehmende, wechselt durch) · + */
+  const paintAvs = () => {
+    const avs = $(".bd-avs", btn); if (!avs) return;
+    const me1 = `<span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span>`, inv = `<span class="bd-me inv">${ic("plus")}</span>`;
+    let mid = "";
+    if (d.share) { const p = peerList.length ? peerList[slot % peerList.length] : null; mid = p ? `<span class="bd-me peer" style="background:${p.color}">${esc(coIni(p.name))}</span>` : `<span class="bd-me peer empty"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg></span>`; }
+    avs.innerHTML = me1 + mid + inv;
+    btn.title = d.share ? (peerList.length ? "Mit dir arbeiten: " + peerList.map(x => x.name).join(", ") : "Zusammenarbeit – gerade niemand sonst online") : "Personen hinzufügen";
+  };
+  avTimer = setInterval(() => { if (dead) return; if (peerList.length > 1) { slot = (slot + 1) % peerList.length; paintAvs(); } }, 2600);
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
-    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", "); { const sv = JSON.stringify(list.slice(0, 5).map(p => ({ n: p.name, c: p.color, o: !!p.owner }))); if (d.share && list.length && d.peers !== sv) { d.peers = sv; save(); } }
+    av.innerHTML = ""; av.title = ""; peerList = list; paintAvs(); { const sv = JSON.stringify(list.slice(0, 5).map(p => ({ n: p.name, c: p.color, o: !!p.owner }))); if (d.share && list.length && d.peers !== sv) { d.peers = sv; save(); } }
     btn.classList.toggle("on", !!d.share); btn.title = d.share ? "Zusammenarbeit" : "Zusammenarbeiten – andere einladen";
   };
   const caretOff = () => { const s = getSelection(); if (document.activeElement !== body || !s.rangeCount || !body.contains(s.anchorNode)) return -1; const r = document.createRange(); r.selectNodeContents(body); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };
@@ -88,27 +99,46 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   }
   const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } conn = ""; peers = {}; paint(); };
   body.addEventListener("input", touch);
+  /* Dropdown unter dem Personen-Knopf – gleiche Optik wie im Whiteboard (kein Overlay, kein Blur) */
+  let pop = null, popOff = null;
+  const closePop = () => { if (pop) { pop.remove(); pop = null; } if (popOff) { document.removeEventListener("pointerdown", popOff, true); document.removeEventListener("keydown", popKey, true); popOff = null; } btn.setAttribute("aria-expanded", "false"); };
+  const popKey = e => { if (e.key === "Escape") closePop(); };
+  btn.setAttribute("aria-haspopup", "true"); btn.setAttribute("aria-expanded", "false");
   btn.onclick = () => {
+    if (pop) return closePop();
     if (teamLocked()) return teamUpsell("Das gemeinsame Bearbeiten von Dateien in Echtzeit");
-    if (!CLOUD.user) { const { el, close } = modal(`<h3>Zusammenarbeiten</h3><p class="note">Zum gemeinsamen Schreiben melde dich zuerst an – dann kannst du Notizen per Link teilen.</p><div class="row end"><button class="btn primary" id="co-login">Anmelden</button></div>`); $("#co-login", el).onclick = () => { close(); cloudLoginModal(); }; return; }
+    if (!CLOUD.user) { openPop(`<p class="sp-h">Zusammenarbeiten</p><p class="sp-n">Zum gemeinsamen Schreiben melde dich zuerst an – dann kannst du Notizen per Link teilen.</p><button class="co-pb" id="co-login">Anmelden</button>`, q => { $("#co-login", q).onclick = () => { closePop(); cloudLoginModal(); }; }); return; }
     if (!d.share && typeof freePlan === "function" && freePlan()) return proUpsell("Gemeinsam an einer Notiz schreiben – live, mit Textfeldern und Zeichnungen – gibt es mit Studix Essential und Pro. Mitschreiben, wenn dich jemand einlädt, geht auch gratis.", "Gemeinsam schreiben");
-    const { el, close } = modal(`<h3>Zusammenarbeiten</h3><div id="co-body"></div>`), box = $("#co-body", el);
-    const draw = () => {
-      if (!d.share) { box.innerHTML = `<p class="note">Teile diese Notiz per Link. Wer den Link hat und angemeldet ist, schreibt live mit – Texte, Textfelder und Zeichnungen. Die Teilnehmenden erscheinen oben neben den drei Punkten.</p><div class="row end"><button class="btn primary" id="co-go">Zusammenarbeit starten</button></div>`;
-        $("#co-go", box).onclick = async () => { const s = state(), { data, error } = await CLOUD.sb.rpc("lumi_share_create", { p_title: d.title, p_html: s.html, p_tb: s.tb, p_ink: s.ink }); if (error || !data) return toast("Freigabe nicht möglich: " + (error?.message || "Fehler")); d.share = data; d.shareOwner = true; d.shareRev = 0; save(); start(); draw(); }; return; }
-      const others = Object.values(peers).map(a => a[0]).filter(Boolean), link = coLink(d.share);
-      box.innerHTML = `<p class="note">Link teilen – wer ihn öffnet (angemeldet), arbeitet mit.</p><div class="co-link"><input class="field" readonly value="${esc(link)}" id="co-l"><button class="btn primary" id="co-cp">Kopieren</button></div>${navigator.share ? `<button class="btn ghost small" id="co-sh">Teilen …</button>` : ""}
-        <h4 class="co-h">Dabei <em class="co-st ${conn === "SUBSCRIBED" ? "ok" : ""}">${conn === "SUBSCRIBED" ? "Live verbunden" : "Verbinde …"}</em></h4><div class="co-ppl"><span><i style="background:${me.color}">${esc(coIni(me.name))}</i>${esc(me.name)} (du)</span>${others.map(p => `<span><i style="background:${p.color}">${esc(coIni(p.name))}</i>${esc(p.name)}<em>online</em></span>`).join("") || `<small class="note">Noch niemand sonst online.</small>`}</div>
-        <div class="row end" style="margin-top:14px"><button class="btn ghost danger" id="co-end">${d.shareOwner ? "Zusammenarbeit beenden" : "Verlassen"}</button></div>`;
-      $("#co-cp", box).onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link kopiert"); } catch { $("#co-l", box).select(); } };
-      $("#co-sh", box)?.addEventListener("click", () => navigator.share({ title: d.title, url: link }).catch(() => {}));
-      $("#co-end", box).onclick = async () => { if (!await confirmBox(d.shareOwner ? "Zusammenarbeit beenden? Andere können dann nicht mehr mitschreiben, deine Notiz bleibt erhalten." : "Zusammenarbeit verlassen? Deine Kopie bleibt erhalten.", "Ja")) return; if (d.shareOwner) await CLOUD.sb.rpc("lumi_share_stop", { p_id: d.share }); stop(); delete d.share; delete d.shareOwner; save(); paint(); draw(); };
+    const render = () => {
+      if (!pop) return;
+      if (!d.share) { pop.innerHTML = `<p class="sp-h">Zusammenarbeiten</p><p class="sp-n">Teile diese Notiz per Link. Wer den Link hat und angemeldet ist, schreibt live mit – Texte, Textfelder und Zeichnungen.</p><button class="co-pb" id="co-go">Zusammenarbeit starten</button>`;
+        $("#co-go", pop).onclick = async () => { const st = state(), { data, error } = await CLOUD.sb.rpc("lumi_share_create", { p_title: d.title, p_html: st.html, p_tb: st.tb, p_ink: st.ink }); if (error || !data) return toast("Freigabe nicht möglich: " + (error?.message || "Fehler")); d.share = data; d.shareOwner = true; d.shareRev = 0; save(); start(); paint(); render(); }; return; }
+      const link = coLink(d.share);
+      pop.innerHTML = `<p class="sp-h">Link teilen</p><div class="sp-link"><input id="co-l" readonly value="${esc(link)}"><button id="co-cp">Kopieren</button></div>${navigator.share ? `<button class="co-sec" id="co-sh">Teilen …</button>` : ""}
+        <p class="sp-h">Person einladen</p><div class="sp-inv"><input id="co-n" placeholder="E-Mail-Adresse" autocomplete="off"><button id="co-in">Einladen</button></div>
+        <p class="sp-h">Zugriff <em class="co-st" id="co-st"></em></p><div class="co-ppl" id="co-ppl"></div>
+        <button class="co-end" id="co-end">${d.shareOwner ? "Zusammenarbeit beenden" : "Verlassen"}</button>`;
+      $("#co-cp", pop).onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link kopiert"); } catch { $("#co-l", pop).select(); } };
+      $("#co-sh", pop)?.addEventListener("click", () => navigator.share({ title: d.title, url: link }).catch(() => {}));
+      $("#co-in", pop).onclick = () => { const w = $("#co-n", pop).value.trim(); if (!w) return $("#co-n", pop).focus(); if (/@/.test(w)) location.href = "mailto:" + encodeURIComponent(w) + "?subject=" + encodeURIComponent("Notiz „" + (d.title || "Notiz") + "“") + "&body=" + encodeURIComponent("Schreib live mit: " + link); else toast("Gib die E-Mail-Adresse der Person ein"); };
+      $("#co-end", pop).onclick = async () => { if (!await confirmBox(d.shareOwner ? "Zusammenarbeit beenden? Andere können dann nicht mehr mitschreiben, deine Notiz bleibt erhalten." : "Zusammenarbeit verlassen? Deine Kopie bleibt erhalten.", "Ja")) return; if (d.shareOwner) await CLOUD.sb.rpc("lumi_share_stop", { p_id: d.share }); stop(); delete d.share; delete d.shareOwner; save(); paint(); render(); };
+      people();
     };
-    draw(); const t = setInterval(() => { if (!el.isConnected) return clearInterval(t); if (d.share) draw(); }, 4000);
+    const people = () => { const box = $("#co-ppl", pop || document); if (!box) return; const st = $("#co-st", pop); if (st) { st.textContent = conn === "SUBSCRIBED" ? "Live verbunden" : "Verbinde …"; st.classList.toggle("ok", conn === "SUBSCRIBED"); }
+      box.innerHTML = `<span class="sp-me"><i class="bd-me" style="background:${me.color}">${esc(coIni(me.name))}</i><b>${esc(me.name)} (du)</b><em>${d.shareOwner ? "Inhaber:in" : "Mitglied"}</em></span>` + (peerList.map(p => `<span class="sp-me"><i class="bd-me" style="background:${p.color}">${esc(coIni(p.name))}</i><b>${esc(p.name)}</b><em class="on">online</em></span>`).join("") || `<small class="note">Noch niemand sonst online.</small>`); };
+    openPop("", () => { render(); const t = setInterval(() => { if (!pop) return clearInterval(t); people(); }, 2000); });
   };
+  function openPop(html, ready) {
+    pop = document.createElement("div"); pop.className = "co-pop"; pop.id = "copop"; pop.innerHTML = html; document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect(); pop.style.top = r.bottom + 8 + "px"; pop.style.right = Math.max(8, innerWidth - r.right) + "px";
+    btn.setAttribute("aria-expanded", "true");
+    popOff = e => { if (!pop.contains(e.target) && !e.target.closest("#co-m")) closePop(); };
+    setTimeout(() => { if (pop) { document.addEventListener("pointerdown", popOff, true); document.addEventListener("keydown", popKey, true); } });
+    ready && ready(pop);
+  }
   window.__co = { touch };
   /* Beim direkten Öffnen/Neuladen ist die Anmeldung evtl. noch nicht fertig – so lange warten, bis die Verbindung steht */
   const boot = setInterval(() => { if (dead || ch || !d.share) { if (dead) clearInterval(boot); return; } if (CLOUD.sb && CLOUD.user) start(); }, 700); setTimeout(() => clearInterval(boot), 60000);
   start(); paint();
-  return { touch, destroy() { dead = true; clearInterval(boot); clearTimeout(tPush); clearTimeout(tPersist); paper.removeEventListener("pointermove", onMove); paper.removeEventListener("pointerleave", onLeave); curLayer.remove(); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
+  return { touch, destroy() { dead = true; clearInterval(boot); clearInterval(avTimer); closePop(); clearTimeout(tPush); clearTimeout(tPersist); paper.removeEventListener("pointermove", onMove); paper.removeEventListener("pointerleave", onLeave); curLayer.remove(); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
 }
