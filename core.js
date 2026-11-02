@@ -401,7 +401,7 @@ const AI_MODELS = [
   ["gemini-flash-lite-latest", "Flash Lite", "Standard", "Gemini"], ["gemini-flash-latest", "Flash", "Besser", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve", "Gemini"],
   ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"],
   ["or:nemotron-vl", "Nemotron 3.5 Super VL", "Kostenlos · NVIDIA · zählt 0,5×", "OpenRouter"], ["or:gemma4-26b", "Gemma 4 26B", "Kostenlos · Google · zählt 0,5×", "OpenRouter"], ["or:gemma4-31b", "Gemma 4 31B", "Kostenlos · Google · zählt 0,5×", "OpenRouter"]];
-const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq", OpenRouter: "OpenRouter" };
+const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq", OpenRouter: "Weitere Modelle" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
 const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !/^(groq|or):/.test(m[0]));
   return L; };
