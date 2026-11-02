@@ -5230,3 +5230,8 @@ select#slang:hover{background-color:#ececf0}select#slang:focus-visible{box-shado
 .ned.dfull .rib .tbtn.lbl em{position:static;margin-left:2px}
 .ned.dfull .rib .tt{height:36px}
 .ned.dfull #rib-draw .inkpal{max-height:44px;overflow-x:auto;scrollbar-width:none}
+
+/* Doc-Editor: Papier beginnt schon hinter den Leisten (Oberkante/Linien nicht sichtbar, scrollt unter den Leisten durch) */
+@media (min-width:901px){
+.main.doc-full .ned-paper{margin-top:-28px!important;padding-top:64px!important;border-top-left-radius:0!important;border-top-right-radius:0!important;min-height:calc(100dvh - 100px)}
+}
