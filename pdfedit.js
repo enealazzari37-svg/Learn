@@ -42,7 +42,9 @@ async function pdfEditor(m, d, blob) {
 
   const dirtyInk = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const dirtyTx = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("ann:" + d.id, texts); save(); svEl.textContent = "Gespeichert"; }, 600);
-  const ink = createInk(pages, d, { bar: $(".ned-bar", m), scale: kNow, onChange: () => { svEl.textContent = "Speichert…"; dirtyInk(); } });
+  const ink = createInk(pages, d, { bar: $(".ned-bar", m), scale: kNow, onChange: () => { svEl.textContent = "Speichert…"; dirtyInk(); },
+    /* KI-Popup beim Lasso: erkannter Text wird eine Text-Anmerkung genau dort, wo die Handschrift stand (Seiten-Einheiten wie die Striche) */
+    ai: { insertText: (text, o) => { const bx = (o && o.box) || [0, 0]; const t = { x: Math.round(bx[0]), y: Math.round(bx[1]), text, size: Math.round(Math.max(12, Math.min(40, (o && o.size) || 18))), color: "#1c1c22" }; texts.push(t); txEl(t); dirtyTx(); return true; } } });
   LEAVE.push(() => ink.destroy());
   let texts = (await KV.get("ann:" + d.id)) || [], size = 18, color = "#1c1c22", focusTx = null;
   let gapVals = (await KV.get("gap:" + d.id)) || {}, gapN = 0;

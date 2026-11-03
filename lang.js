@@ -75,5 +75,5 @@ const LPL = (() => {
   function tt(s) { const de = rev(s) || (Object.keys(FR).find(k => FR[k] === s)) || s; if (lang === "fr" && Object.prototype.hasOwnProperty.call(FR, de)) return FR[de]; return lang !== "de" && Object.prototype.hasOwnProperty.call(EN, de) ? EN[de] : de; }   // Seitentitel der Login-Seiten
   document.addEventListener("change", e => { if (e.target && e.target.id === "slang") set(e.target.value); });
   document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".lang-sw button,[data-lang-set] button"); if (b) set(b.dataset.lang); });
-  return { mount, sync, set, title, tt, get lang() { return lang; } };
+  return { mount, sync, set, title, tt, tr: r => { if (lang !== "de") toEn(r); }, get lang() { return lang; } };   // tr: Element manuell übersetzen (Popups direkt im body)
 })();

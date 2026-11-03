@@ -11,6 +11,12 @@ Die KI läuft serverseitig über `api/ai.js`. In Vercel unter *Settings → Envi
 
 Die Sprachausgabe (Voice) läuft über OpenRouter mit HeyGen Voice Turbo (`api/tts.js`). In Vercel `OPENROUTER_API_KEY` setzen (https://openrouter.ai/keys); optional `OPENROUTER_TTS_MODEL` (Standard `heygen/heygen-voice-1-turbo:free`) und `OPENROUTER_TTS_VOICE` (Standard `nadine`). Ohne Key oder bei Fehlern nutzt Studix die Browser-Stimme „Thorsten“.
 
+## Schule & Hochschule als KI-Wissen
+Unter *Einstellungen → Profil → Schule & Hochschule* (und im AI-Chat über die Büroklammer → „Meine Schule …“) lassen sich bis zu drei Einrichtungen angeben, z. B. Harvard University oder eine Kantonsschule. Studix AI sucht Notensystem, Prüfungsformen und Schwerpunkte (mit Websuche, wenn Gemini verfügbar ist, sonst aus dem Modellwissen) und nutzt die Notizen als Hintergrundwissen für Chat, Sprachmodus, Lernziele, Quiz und das Feedback beim Zeichnen. Code: `schools.js`; der Kontext wird in `sysBase()` (`core.js`) angehängt und gilt als reine Daten, nie als Anweisung.
+
+## KI-Popup im Zeichnen-Modus
+Wer mit dem Lasso Gezeichnetes oder Handschrift auswählt, bekommt wie bei markiertem Text ein Popup mit Studix AI: Handschrift in Text verwandeln (an Ort und Stelle ersetzen oder ins Dokument bzw. als PDF-Anmerkung einfügen), von der KI neu zeichnen lassen, Formen begradigen (läuft ohne KI), Fehler prüfen, erklären oder frei fragen. Die Auswahl geht als Bild an die KI (Gemini; Vision). Code: `inkai.js`, Schnittstellen und der neue Strich-Typ „text“ in `ink.js`.
+
 ## Bezahlung (Studix Study Pro mit Stripe Managed Payments)
 Abo-Zahlungen über Stripe Checkout mit Managed Payments (Stripe ist Verkäufer und übernimmt Mehrwertsteuer in 80+ Ländern). Das Abo wird live aus Stripe gelesen, nichts davon liegt in unserer Datenbank. Einrichtung Schritt für Schritt: [docs/PAYMENTS.md](docs/PAYMENTS.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).
 

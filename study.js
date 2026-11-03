@@ -1083,7 +1083,13 @@ async function noteEditor(m, d) {
   const paper = $("#paperc", m); setScroller(paper); const inkSave = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const fitInk = mx => { paper.style.minHeight = mx > 0 ? Math.max(mx + 260, 0) + "px" : ""; };
   const AUD = {};
-  const ink = createInk(paper, d, { grid: true, audio: AUD, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); } });
+  const ink = createInk(paper, d, { grid: true, audio: AUD, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); },
+    /* KI-Popup beim Lasso: erkannter Text kommt als Absatz an die Stelle der Handschrift (vor den ersten Block, der darunter beginnt) */
+    ai: { insertText: (text, o) => {
+      const top = paper.getBoundingClientRect().top, y = o && o.box ? o.box[1] : 1e9, blk = [...body.children].find(c => c.getBoundingClientRect().top - top + c.offsetHeight / 2 > y);
+      const tmp = document.createElement("div"); tmp.innerHTML = textToHtml(text); const nodes = [...tmp.childNodes];
+      nodes.forEach(n => blk ? body.insertBefore(n, blk) : body.appendChild(n)); dirty(); return true;
+    } } });
   const inkData = await KV.get("ink:" + d.id); if (inkData?.length) { ink.load(inkData); fitInk(Math.max(...inkData.flatMap(s => s.pts.map(q => q[1])))); } else ink.load([]);
   const tbSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("tb:" + d.id, TBX.get()); save(); svEl.textContent = "Gespeichert"; }, 500);
   const TBX = mountTextBoxes(paper, { onChange: () => { svEl.textContent = "Speichert…"; tbSave(); window.__co?.touch(); } }); TBX.load(await KV.get("tb:" + d.id)); LEAVE.push(() => TBX.destroy());
