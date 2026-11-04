@@ -38,8 +38,8 @@ async function resolveOR() {
   return list;
 }
 const L = require("./_lib");
-/* Studix-Token = echte Token ÷ 10, dazu Gewicht je Modell: Gemini Flash/Lite 1×, Groq 0,5× */
-const WEIGHT = id => /^(groq|or):/.test(id) ? 0.5 : /pro/.test(id) ? 5 : 1;
+/* Studix-Token = echte Token ÷ 10, dazu Gewicht je Modell: alle Modelle (Gemini, Gemma 4, Groq) zählen 1× */
+const WEIGHT = id => /pro/.test(id) ? 5 : 1;
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY, openrouter: !!process.env.OPENROUTER_API_KEY });
 const available = () => { const h = have(); return [...MODELS, ...OR_DEF.map(d => ({ id: d.id, p: "openrouter" }))].filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
@@ -110,15 +110,18 @@ module.exports = async function handler(req, res) {
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */
-  const orList = h.openrouter ? await resolveOR() : [], want = [...MODELS, ...orList].find(x => x.id === wanted && h[x.p]);
-  const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
+  /* Google Gemini nur mit Studix Essential oder Pro. Gratis-Konten nutzen Gemma 4 und Groq (sofern man Essential/Pro überhaupt kaufen kann; ohne Konto-/Abo-System bleibt alles offen) */
+  let allowGemini = true;
+  if (acct && acct.tier === "free") { try { allowGemini = !(await L.billingReady()); } catch { allowGemini = true; } }
+  const orList = h.openrouter ? await resolveOR() : [], want = [...MODELS, ...orList].find(x => x.id === wanted && h[x.p] && (allowGemini || x.p !== "gemini"));
+  const geminiList = h.gemini && allowGemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" || want?.p === "openrouter" ? [...(want.p === "groq" ? groqList : orList), ...geminiList, ...groqList] : [...geminiList, ...groqList]), ...orList].filter(Boolean);
-  if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
+  if (allowGemini && (image || (sources && h.gemini && want?.p !== "groq"))) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
   /* Autokorrektur/Hintergrund (bg): nie Gemini; Reihenfolge mischen, damit viele gleichzeitige Nutzer die Limits der Anbieter verteilen */
   if (bg) { cands = cands.filter(c => c.p !== "gemini"); for (let k = cands.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [cands[k], cands[r]] = [cands[r], cands[k]]; } }
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
-  if (!cands.length) return res.status(422).json({ error: bg ? "Für die Autokorrektur ist kein Groq- oder OpenRouter-Modell eingerichtet." : "Für Bilder wird GEMINI_API_KEY benötigt." });
+  if (!cands.length) return res.status(422).json({ error: !allowGemini ? "Für Gratis-Konten ist gerade kein Groq- oder Gemma-Modell eingerichtet." : bg ? "Für die Autokorrektur ist kein Groq- oder OpenRouter-Modell eingerichtet." : "Für Bilder wird GEMINI_API_KEY benötigt." });
 
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 28000);
   try {

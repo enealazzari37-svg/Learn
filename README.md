@@ -17,6 +17,12 @@ Unter *Einstellungen → Profil → Schule & Hochschule* (und im AI-Chat über d
 ## KI-Popup im Zeichnen-Modus
 Wer mit dem Lasso Gezeichnetes oder Handschrift auswählt, bekommt wie bei markiertem Text ein Popup mit Studix AI: Handschrift in Text verwandeln (an Ort und Stelle ersetzen oder ins Dokument bzw. als PDF-Anmerkung einfügen), von der KI neu zeichnen lassen, Formen begradigen (läuft ohne KI), Fehler prüfen, erklären oder frei fragen. Die Auswahl geht als Bild an die KI (Gemini; Vision). Code: `inkai.js`, Schnittstellen und der neue Strich-Typ „text“ in `ink.js`.
 
+## KI-Modelle und Pläne
+- **Google Gemini** (Flash Lite, Flash, 2.5 Flash Lite) gibt es nur mit **Studix Essential oder Pro**. Im Gratis-Konto sind sie in der Modellauswahl gesperrt (Hinweis „Essential & Pro“), der Server `api/ai.js` setzt das ebenfalls durch (nur wenn Bezahlen überhaupt eingerichtet ist).
+- **Gemma 4** und **Groq** (Llama 8B/70B, GPT-OSS) sind für alle Konten nutzbar, auch gratis. Standard im Gratis-Konto ist Llama 70B.
+- **Alle Modelle zählen 1×** gegen das Wochen- und das 5-Stunden-Limit (`WEIGHT` in `api/ai.js`).
+- Gemma und Nemotron haben eigene, einfache Symbole (Edelstein bzw. Chip) statt Markenlogos; Gemini und Groq zeigen ihre Logos nur als Herkunftshinweis.
+
 ## Bezahlung (Studix Study Pro mit Stripe Managed Payments)
 Abo-Zahlungen über Stripe Checkout mit Managed Payments (Stripe ist Verkäufer und übernimmt Mehrwertsteuer in 80+ Ländern). Das Abo wird live aus Stripe gelesen, nichts davon liegt in unserer Datenbank. Einrichtung Schritt für Schritt: [docs/PAYMENTS.md](docs/PAYMENTS.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).
 

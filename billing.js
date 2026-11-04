@@ -99,8 +99,9 @@ function planCompareHtml() {
   const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
   const ess = !!(BILL.cfg && BILL.cfg.essential), X = (a, e, b) => ess ? [a, e, b] : [a, b];
   const rows = [["Dokumente <small>Notizen, Dateien &amp; PDFs</small>", ...X(`bis zu <b>${FREE_LIMITS.docs}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Whiteboards &amp; Zeichnungen", ...X(`bis zu <b>${FREE_LIMITS.boards}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Karteikarten &amp; Quiz", ...X(ck, ck, ck)], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ...X(ck, ck, ck)], ["Sync auf allen Geräten", ...X(ck, ck, ck)], ["Workspace &amp; Live-Zusammenarbeit <small>Dateien gemeinsam in Echtzeit bearbeiten</small>", ...X(no, ck, ck)],
-    [`Studix AI Limit <small>Gemini &amp; Groq – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage</small>`, ...X(`<b>${aiuNum(AIQ.free)}</b> / Woche<br><b>${aiuNum(AIQ.freeS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.ess)}</b> / Woche<br><b>${aiuNum(AIQ.essS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.pro)}</b> / Woche<br><b>${aiuNum(AIQ.proS)}</b> / 5 Std.`)], ["Bild-Analyse &amp; Sprachgespräch", ...X(no, no, ck)], ["Längere Antworten", ...X(no, ck, ck)], ["Neue Pro-Funktionen zuerst", ...X(no, no, ck)]];
-  return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h${ess ? " c3" : ""}" role="row"><span></span><b>Gratis</b>${ess ? "<b>Essential</b>" : ""}<b>Pro</b></div>${rows.map(([t, ...v]) => `<div class="pc-r${ess ? " c3" : ""}" role="row"><span>${t}</span>${v.map(x => `<span>${x}</span>`).join("")}</div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Flash 1×, Groq 0,5×.</p></div>`;
+    ["KI-Modelle <small>Google Gemini nur mit Essential und Pro</small>", ...X("Gemma 4 &amp; Groq", "Gemini, Gemma 4 &amp; Groq", "Gemini, Gemma 4 &amp; Groq")],
+    [`Studix AI Limit <small>alle Modelle zählen 1× – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage</small>`, ...X(`<b>${aiuNum(AIQ.free)}</b> / Woche<br><b>${aiuNum(AIQ.freeS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.ess)}</b> / Woche<br><b>${aiuNum(AIQ.essS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.pro)}</b> / Woche<br><b>${aiuNum(AIQ.proS)}</b> / 5 Std.`)], ["Bild-Analyse &amp; Sprachgespräch", ...X(no, no, ck)], ["Längere Antworten", ...X(no, ck, ck)], ["Neue Pro-Funktionen zuerst", ...X(no, no, ck)]];
+  return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h${ess ? " c3" : ""}" role="row"><span></span><b>Gratis</b>${ess ? "<b>Essential</b>" : ""}<b>Pro</b></div>${rows.map(([t, ...v]) => `<div class="pc-r${ess ? " c3" : ""}" role="row"><span>${t}</span>${v.map(x => `<span>${x}</span>`).join("")}</div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Alle Modelle zählen 1×.</p></div>`;
 }
 /* Popup, wenn ein Gratis-Limit erreicht ist oder eine Pro-Funktion genutzt wird */
 function proUpsell(msg, title) {
@@ -329,7 +330,7 @@ function aiuPop(btn) {
   pop.innerHTML = AIU.unl
     ? `<b>Studix AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Für dein Konto gibt es kein Limit.</p>`
     : `<b>Studix AI${AIU.pro ? " · Pro" : AIU.tier === "essential" ? " · Essential" : ""}</b>${aiuRows()}
-       <p class="aiu-s">Alle Modelle sind nutzbar: Gemini Flash 1×, Groq 0,5×.</p>
+       <p class="aiu-s">Gemini gibt es mit Essential und Pro, Gemma 4 und Groq auch gratis. Alle Modelle zählen 1×.</p>
        ${aiuUp() ? `<button class="btn small aiu-up" type="button">${aiuUp()}</button>` : ""}`;
   document.body.appendChild(pop);
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";

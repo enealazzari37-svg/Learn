@@ -842,3 +842,27 @@ Object.assign(window.LPL_APP.EN4, {
  "Nicht eindeutig": "Not clear"
 });
 window.LPL_APP.RX.push(...([["^Studix AI kennt jetzt „(.+)“$", "Studix AI now knows “$1”"], ["^(\\d+) Quellen$", "$1 sources"], ["^vor (\\d+) Min\\.$", "$1 min ago"], ["^vor (\\d+) Std\\.$", "$1 hr ago"], ["^vor (\\d+) Tagen$", "$1 days ago"], ["^(\\d+) Formen begradigt$", "$1 shapes straightened"], ["^(\\d+) mögliche Fehler$", "$1 possible mistakes"]]));
+
+/* Modellregeln: Gemini nur Essential/Pro, Gemma 4 und Groq für alle, alle 1× */
+Object.assign(window.LPL_APP.EN4, {
+ "Studix AI läuft zurzeit mit Gemini, Gemma und Groq – schnell, und für jede Frage das passende Modell.": "Studix AI currently runs on Gemini, Gemma and Groq – fast, with the right model for every question.",
+ "Extrem schnell": "Extremely fast",
+ "Schnell und klug": "Fast and smart",
+ "Gründlich · 120B": "Thorough · 120B",
+ "Google · offenes Modell": "Google · open model",
+ "NVIDIA": "NVIDIA",
+ "Essential & Pro": "Essential & Pro",
+ "Google Gemma": "Google Gemma",
+ "NVIDIA Nemotron": "NVIDIA Nemotron",
+ "Google Gemini gibt es mit Studix Essential und Pro. Gemma 4 und Groq nutzt du auch gratis.": "Google Gemini comes with Studix Essential and Pro. You can use Gemma 4 and Groq for free.",
+ "Gemini freischalten": "Unlock Gemini",
+ "Gemini gibt es mit Essential und Pro, Gemma 4 und Groq auch gratis. Alle Modelle zählen 1×.": "Gemini comes with Essential and Pro; Gemma 4 and Groq are free too. All models count 1×.",
+ "Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Alle Modelle zählen 1×.": "Studix tokens equal about one tenth of the real model tokens. All models count 1×.",
+ "KI-Modelle": "AI models",
+ "Google Gemini nur mit Essential und Pro": "Google Gemini only with Essential and Pro",
+ "Gemma 4 & Groq": "Gemma 4 & Groq",
+ "Gemini, Gemma 4 & Groq": "Gemini, Gemma 4 & Groq",
+ "alle Modelle zählen 1× – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage": "all models count 1× – weekly limit and 5-hour limit, each starting from your first request"
+});
+
+Object.assign(window.LPL_APP.EN4, {"Besser":"Better","Reserve":"Backup","Quellen":"Sources"});

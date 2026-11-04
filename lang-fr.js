@@ -1223,3 +1223,27 @@ Object.assign(window.LPL_FR.FR, {
  "Nicht eindeutig": "Pas clair"
 });
 window.LPL_FR.RX.push(...([["^Studix AI kennt jetzt „(.+)“$", "Studix AI connaît maintenant « $1 »"], ["^(\\d+) Quellen$", "$1 sources"], ["^vor (\\d+) Min\\.$", "il y a $1 min"], ["^vor (\\d+) Std\\.$", "il y a $1 h"], ["^vor (\\d+) Tagen$", "il y a $1 jours"], ["^(\\d+) Formen begradigt$", "$1 formes redressées"], ["^(\\d+) mögliche Fehler$", "$1 erreurs possibles"]]));
+
+/* Modellregeln */
+Object.assign(window.LPL_FR.FR, {
+ "Studix AI läuft zurzeit mit Gemini, Gemma und Groq – schnell, und für jede Frage das passende Modell.": "Studix AI fonctionne actuellement avec Gemini, Gemma et Groq – rapide, avec le bon modèle pour chaque question.",
+ "Extrem schnell": "Ultra rapide",
+ "Schnell und klug": "Rapide et malin",
+ "Gründlich · 120B": "Approfondi · 120B",
+ "Google · offenes Modell": "Google · modèle ouvert",
+ "NVIDIA": "NVIDIA",
+ "Essential & Pro": "Essential & Pro",
+ "Google Gemma": "Google Gemma",
+ "NVIDIA Nemotron": "NVIDIA Nemotron",
+ "Google Gemini gibt es mit Studix Essential und Pro. Gemma 4 und Groq nutzt du auch gratis.": "Google Gemini est inclus avec Studix Essential et Pro. Tu peux utiliser Gemma 4 et Groq gratuitement.",
+ "Gemini freischalten": "Débloquer Gemini",
+ "Gemini gibt es mit Essential und Pro, Gemma 4 und Groq auch gratis. Alle Modelle zählen 1×.": "Gemini est inclus avec Essential et Pro ; Gemma 4 et Groq sont aussi gratuits. Tous les modèles comptent 1×.",
+ "Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Alle Modelle zählen 1×.": "Les jetons Studix valent environ un dixième des vrais jetons du modèle. Tous les modèles comptent 1×.",
+ "KI-Modelle": "Modèles d’IA",
+ "Google Gemini nur mit Essential und Pro": "Google Gemini uniquement avec Essential et Pro",
+ "Gemma 4 & Groq": "Gemma 4 & Groq",
+ "Gemini, Gemma 4 & Groq": "Gemini, Gemma 4 & Groq",
+ "alle Modelle zählen 1× – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage": "tous les modèles comptent 1× – limite hebdomadaire et limite de 5 heures, chacune dès ta première demande"
+});
+
+Object.assign(window.LPL_FR.FR, {"Besser":"Meilleur","Reserve":"Secours","Quellen":"Sources"});

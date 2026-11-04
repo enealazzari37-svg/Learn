@@ -372,7 +372,10 @@ const SUBJ = () => isUni() ? "Module" : "Fächer";
 /* Marken der KI-Anbieter, unverändert in Originalfarben und Seitenverhältnis (nur als Hinweis „betrieben mit …“). Groq: offizielles Logo, weiss auf Groq-Orange. */
 const GEMINI_SVG = '<svg class="prov-logo" viewBox="0 0 24 24"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gm)" d="M12 1.5C12.7 7.6 16.4 11.3 22.5 12 16.4 12.7 12.7 16.4 12 22.5 11.3 16.4 7.6 12.7 1.5 12 7.6 11.3 11.3 7.6 12 1.5Z"/></svg>';
 const GROQ_SVG = '<svg class="prov-logo" viewBox="0 0 1024 1024" fill="none"><rect width="1024" height="1024" rx="230" fill="#F55036"/><g transform="translate(176 176) scale(.6563)"><path d="M395.479 633.828L735.91 381.105C752.599 368.715 776.454 373.548 784.406 392.792C826.26 494.285 807.561 616.253 724.288 699.996C641.016 783.739 525.151 802.104 419.247 760.277L303.556 814.143C469.49 928.202 670.987 899.995 796.901 773.282C896.776 672.843 927.708 535.937 898.785 412.476L899.047 412.739C857.105 231.37 909.358 158.874 1016.4 10.6326C1018.93 7.11771 1021.47 3.60279 1024 0L883.144 141.651V141.212L395.392 633.916" fill="white"/><path d="M325.226 695.251C206.128 580.84 226.662 403.776 328.285 301.668C403.431 226.097 526.549 195.254 634.026 240.596L749.454 186.994C728.657 171.88 702.007 155.623 671.424 144.2C533.19 86.9942 367.693 115.465 255.323 228.382C147.234 337.081 113.244 504.215 171.613 646.833C215.216 753.423 143.739 828.818 71.7385 904.916C46.2237 931.893 20.6216 958.87 0 987.429L325.139 695.339" fill="white"/></g></svg>';
-const provLogo = prov => prov === "Groq" ? GROQ_SVG : prov === "Gemini" ? GEMINI_SVG : "";
+/* Gemma und Nemotron: eigene, einfache Symbole (Edelstein bzw. Chip) – bewusst keine Markenlogos, damit es rechtlich unkritisch bleibt */
+const GEMMA_SVG = '<svg class="prov-logo" viewBox="0 0 24 24" fill="none" aria-hidden="true"><defs><linearGradient id="gmma" x1="3" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#2dd4bf"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><path d="M6.4 4.2h11.2l4 5.2L12 20.3 2.4 9.4z" fill="url(#gmma)"/><path d="M2.4 9.4h19.2M9.1 4.2L7.4 9.4 12 20.3l4.6-10.9-1.7-5.2M7.4 9.4L12 4.2l4.6 5.2" stroke="#fff" stroke-opacity=".8" stroke-width="1.1" stroke-linejoin="round"/></svg>';
+const CHIP_SVG = '<svg class="prov-logo" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3.2" fill="#16a34a"/><rect x="9" y="9" width="6" height="6" rx="1.4" fill="#fff" fill-opacity=".92"/><path d="M9 2.6v2.4M15 2.6v2.4M9 19v2.4M15 19v2.4M2.6 9h2.4M2.6 15h2.4M19 9h2.4M19 15h2.4" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const provLogo = prov => prov === "Groq" ? GROQ_SVG : prov === "Gemini" ? GEMINI_SVG : prov === "Gemma" ? GEMMA_SVG : prov === "Nemotron" ? CHIP_SVG : "";
 /* ---------- AI ---------- */
 let serverAI = false, serverInfo = null;
 /* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
@@ -397,16 +400,19 @@ const sourcesOn = () => D.profile.sources !== false && !!(serverInfo && serverIn
 const swissOn = () => true;   // Studix ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
+/* Plan-Regeln: Google Gemini nur mit Studix Essential oder Pro. Gemma 4 und Groq gibt es für alle (auch Gratis). Alle Modelle zählen 1× gegen das Limit. */
 const AI_MODELS = [
   ["gemini-flash-lite-latest", "Flash Lite", "Standard", "Gemini"], ["gemini-flash-latest", "Flash", "Besser", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve", "Gemini"],
-  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"],
-  ["or:nemotron-vl", "Nemotron 3.5 Super VL", "Kostenlos · NVIDIA · zählt 0,5×", "OpenRouter"], ["or:gemma4-26b", "Gemma 4 26B", "Kostenlos · Google · zählt 0,5×", "OpenRouter"], ["or:gemma4-31b", "Gemma 4 31B", "Kostenlos · Google · zählt 0,5×", "OpenRouter"]];
-const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq", OpenRouter: "Weitere Modelle" };
+  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"],
+  ["or:gemma4-26b", "Gemma 4 26B", "Google · offenes Modell", "Gemma"], ["or:gemma4-31b", "Gemma 4 31B", "Google · offenes Modell", "Gemma"], ["or:nemotron-vl", "Nemotron 3.5 Super VL", "NVIDIA", "Nemotron"]];
+const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq", Gemma: "Google Gemma", Nemotron: "NVIDIA Nemotron" };
+/* Gemini ist für Gratis-Konten gesperrt (der Server setzt das ebenfalls durch); solange das Abo noch lädt, gilt es als frei */
+const geminiLocked = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && BILL.loaded && !isPlus(); } catch { return false; } };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
 const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !/^(groq|or):/.test(m[0]));
   return L; };
 /* Standard ist das erste Modell der Liste (Flash Lite); gespeicherte, nicht mehr vorhandene Modelle (z. B. Pro) fallen darauf zurück */
-const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); return (mine || L[0] || AI_MODELS[0])[0]; };
+const aiModelId = () => { const lock = geminiLocked(), L = aiModelList().filter(m => !(lock && m[3] === "Gemini")), mine = L.find(m => m[0] === D.profile.aiModel); return (mine || (lock && L.find(m => m[0] === "groq:llama-3.3-70b-versatile")) || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelList = () => aiModelList().filter(m => m[3] !== "Gemini");   /* Autokorrektur: kein Gemini */

@@ -5388,3 +5388,8 @@ body .ned.dfull.pdfed .ned-bar,body .ned.pdfed .ned-bar{display:flex!important;f
 .ia-iss li b{font-weight:700}.ia-iss li span{color:#b4381f}.ia-iss li em{font-style:normal;color:#1f7a4d;font-weight:600}
 .sch .icon-btn svg{width:18px;height:18px}
 .sch-st{flex-wrap:wrap}.sch-st span{white-space:nowrap}
+
+/* Modellauswahl: gesperrte Gemini-Modelle im Gratis-Konto */
+.mp-lock{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:#f3f1ff;color:#5b3df5;text-transform:none}
+.mp-i.lock{opacity:.55}
+.mp-i.lock:hover{opacity:.85}
