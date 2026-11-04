@@ -5395,3 +5395,7 @@ body .ned.dfull.pdfed .ned-bar,body .ned.pdfed .ned-bar{display:flex!important;f
 .mp-i.lock:hover{opacity:.85}
 /* Modell-Symbole: einfarbiges Groq-Zeichen folgt der Textfarbe (im Dunkelmodus invertiert die Seite es zu Hell) */
 svg.prov-logo{color:#15151c}
+
+/* Startseiten-Grafik: das Studix-Logo sitzt mittig im Kreis (ein geerbter Rand rechts schob es nach links) */
+.bm-n .mark{margin:0!important;vertical-align:middle}
+.bm-n.ctr .mark{display:block;width:36px!important;height:36px!important;background-position:50% 52%!important}
