@@ -5415,3 +5415,6 @@ svg.prov-logo{color:#15151c}
 .nav-tree .nav-f .tl-e.end{bottom:auto;height:calc(50% + 1px)}
 .nav-tree .nav-f .tl-e.end::before{left:0;top:0;width:100%;height:100%;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px}
 .nav-tree .nav-f .tl-e.end::after{display:none}
+
+/* Farb-Logos der KI-Anbieter: gleicht den globalen Dark-Filter (invert .93 + hue 180) exakt aus, damit die Originalfarben 1:1 erscheinen */
+html[data-theme="dark"] svg.prov-logo[data-keep-colors]{filter:invert(1) contrast(1.1628) hue-rotate(180deg)}
