@@ -71,6 +71,7 @@ function vcOrb(cv, get) {
 /* ---------- die Seite ---------- */
 V.voice = m => {
   m.classList.add("voicepg");
+  if (aiOff()) { m.innerHTML = `<div class="vc"><div class="vc-top"><button class="btn ghost small" id="vc-back" type="button">${ic("back")}Studix AI</button></div><div style="max-width:420px;margin:90px auto;text-align:center;padding:0 20px"><h2 style="margin-bottom:10px">KI ist ausgeschaltet</h2><p class="note">Studix Voice nutzt Mikrofon und KI-Anbieter. Solange die KI ausgeschaltet ist, wird nichts aufgenommen oder gesendet. Du kannst sie unter Einstellungen → Studix AI wieder einschalten.</p></div></div>`; const bk = m.querySelector("#vc-back"); if (bk) bk.onclick = () => go("ai"); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const S = { state: "idle", level: 0, hist: [], paused: false, alive: true, voice: (VC_VOICES.find(v => v[0] === LS.get("lumi-voice")) || VC_VOICES[0])[0], ac: null, mic: null, micAn: null, outAn: null, src: null, rec: null, token: 0, chat: null, pip: null, pipQ: Promise.resolve() };
   const serverOk = typeof serverAI !== "undefined" && serverAI && typeof CLOUD !== "undefined" && CLOUD.user;

@@ -391,7 +391,10 @@ function limitHit(kind) {
   return hit;
 }
 async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; if (j.freeSession) AIQ.freeS = j.freeSession; if (j.proSession) AIQ.proS = j.proSession; if (j.essentialTokens) AIQ.ess = j.essentialTokens; if (j.essentialSession) AIQ.essS = j.essentialSession; } catch {} }
-const hasKey = () => serverAI || !!D.profile.apiKey;
+/* Datenschutz-Schalter: ist die KI aus, verlässt nichts das Gerät Richtung KI-Anbieter (Chat, Sprache, Zeichnen, Schule, Autokorrektur) */
+const aiOff = () => !!(D.profile && D.profile.aiOff);
+const AI_OFF_MSG = "KI ist ausgeschaltet – es werden keine Inhalte an KI-Anbieter gesendet (Einstellungen → Studix AI).";
+const hasKey = () => !aiOff() && (serverAI || !!D.profile.apiKey);
 function sysBase(extra = "") {
   const p = D.profile;
   return `You are Studix, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural. Use the Swiss school context: grades 1–6 (6 = best, 4 = pass), Swiss school types and Swiss dates (TT.MM.JJJJ), currency CHF." : ""}${typeof schoolCtx === "function" ? schoolCtx() : ""}${extra ? "\n" + extra : ""}`;
@@ -419,6 +422,7 @@ const autoModelList = () => aiModelList().filter(m => m[3] !== "Gemini");   /* A
 const autoModelId = () => { const L = autoModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L[0] || AI_MODELS[3])[0]; };
 async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false, bg = false } = {}) {
   window.lastAiSources = []; window.lastAiIssue = null;
+  if (aiOff()) { if (!quiet) toast(AI_OFF_MSG); return null; }
   if (!hasKey()) { if (!quiet) toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {

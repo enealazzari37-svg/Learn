@@ -167,7 +167,7 @@ function openAiCommand(prefill = "") {
   $$(".aic-sug button", el).forEach(b => b.onclick = () => { inp.value = b.textContent; $(".aic-in", el).requestSubmit(); });
   $(".aic-in", el).onsubmit = async e => {
     e.preventDefault(); const q = inp.value.trim(); if (!q) return;
-    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI.</p>`; return; }
+    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">${aiOff() ? AI_OFF_MSG : "Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI."}</p>`; return; }
     $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>Studix AI schreibt …</span></div>`;
     const r = await agentAsk(q);
     if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }

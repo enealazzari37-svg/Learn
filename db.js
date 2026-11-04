@@ -98,7 +98,7 @@ async function dbEditor(m, d) {
   const rename = () => { const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = d.title; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select(); let done = false; const fin = ok => { if (done) return; done = true; if (ok && inp.value.trim()) { d.title = inp.value.trim(); d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; }; inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") inp.blur(); else if (e.key === "Escape") fin(false); }; };
   $("#cr", m).onclick = rename;
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zeilen mit Studix AI vorschlagen …", icon: "spark", fn: async () => {
-    if (!hasKey()) return toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI).");
+    if (!hasKey()) return toast(aiOff() ? AI_OFF_MSG : "Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI).");
     const topic = (await ask("Wofür soll Studix AI Einträge erstellen?", { placeholder: "z. B. Lernplan für die Bio-Klausur in 2 Wochen", ok: "Erstellen" }))?.trim(); if (!topic) return;
     toast("Studix AI erstellt Einträge …"); const spec = data.cols.map(c => `"${c.name}" (${DB_TYPES[c.type]}${c.type === "select" ? ": " + (c.opts || []).map(o => o.n).join("/") : c.type === "date" ? ", JJJJ-MM-TT" : ""})`).join(", ");
     const r = await ai(`Erzeuge höchstens 8 Zeilen für eine Tabelle zum Thema: ${topic}. Heute ist ${iso()}. Spalten: ${spec}. Antworte NUR mit einem JSON-Array aus Objekten, deren Schlüssel die Spaltennamen sind.`, { system: sysBase(), max: 1200, quiet: true });

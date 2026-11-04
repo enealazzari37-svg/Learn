@@ -42,7 +42,7 @@ function inkAIBind(ink, host) {
   /* ---------- KI mit Bild der Auswahl ---------- */
   async function vision(prompt, max) {
     const im = ink.selImage(); if (!im) return { stale: true };
-    if (typeof hasKey === "function" && !hasKey()) return { err: "Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI)." };
+    if (typeof hasKey === "function" && !hasKey()) return { err: aiOff() ? AI_OFF_MSG : "Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI)." };
     const tok = ++token, sty = ink.selStyle();
     const r = await ai(prompt, { image: { data: im.data, type: "image/jpeg" }, max, quiet: true });
     if (tok !== token || dead) return { stale: true };

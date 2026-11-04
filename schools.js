@@ -27,7 +27,7 @@ const schLang = () => ({ en: "English", fr: "French" }[(typeof LPL !== "undefine
 const schClean = t => String(t || "").replace(/\s*\[\d+(?:\s*,\s*\d+)*\]/g, "").replace(/\*\*/g, "").replace(/[ \t]+\n/g, "\n").trim();
 
 async function schoolLearn(sc, quiet) {
-  if (!hasKey()) { if (!quiet) toast("Studix AI ist noch nicht eingerichtet – die Schule ist gespeichert, aber ohne Infos."); return false; }
+  if (!hasKey()) { if (!quiet) toast(aiOff() ? AI_OFF_MSG : "Studix AI ist noch nicht eingerichtet – die Schule ist gespeichert, aber ohne Infos."); return false; }
   if (SCH_BUSY.has(sc.id)) return false;
   SCH_BUSY.add(sc.id); schoolsRepaint();
   const where = [D.profile.city, typeof proCountry === "function" ? proCountry() : ""].filter(Boolean).join(", ");
