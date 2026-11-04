@@ -5393,3 +5393,5 @@ body .ned.dfull.pdfed .ned-bar,body .ned.pdfed .ned-bar{display:flex!important;f
 .mp-lock{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:#f3f1ff;color:#5b3df5;text-transform:none}
 .mp-i.lock{opacity:.55}
 .mp-i.lock:hover{opacity:.85}
+/* Modell-Symbole: einfarbiges Groq-Zeichen folgt der Textfarbe (im Dunkelmodus invertiert die Seite es zu Hell) */
+svg.prov-logo{color:#15151c}
