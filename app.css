@@ -5399,3 +5399,19 @@ svg.prov-logo{color:#15151c}
 /* Startseiten-Grafik: das Studix-Logo sitzt mittig im Kreis (ein geerbter Rand rechts schob es nach links) */
 .bm-n .mark{margin:0!important;vertical-align:middle}
 .bm-n.ctr .mark{display:block;width:36px!important;height:36px!important;background-position:50% 52%!important}
+
+/* Ordnerbaum in der Seitenleiste (Documents): eine einzige, saubere Linien-Definition.
+   Die Hauptlinie liegt genau unter dem Symbol von „Documents“, die Linien der Unterordner genau unter dem Symbol des übergeordneten Ordners;
+   alle Linien 2 px, ohne Lücken zwischen den Zeilen. Letzter Eintrag: runde Ecke; sonst: durchgehende Linie mit geradem Abzweig mittig zur Zeile.
+   (Positionen setzt study.js, Symbolbreite 17 px.) */
+.nav-tree{gap:0}
+.nav-tree .nav-f{padding-top:6px;padding-bottom:6px}
+.nav-tree .nav-f u{position:absolute;pointer-events:none;box-sizing:border-box;text-decoration:none}
+.nav-tree .nav-f .tl-v{top:0;bottom:-1px;width:2px;border:0;background:#cfcfd5;left:auto}
+.nav-tree .nav-f .tl-e{top:0;bottom:-1px;height:auto;border:0!important;border-radius:0!important;background:none}
+.nav-tree .nav-f .tl-e::before,.nav-tree .nav-f .tl-e::after{content:"";position:absolute;box-sizing:border-box;border:0;width:auto;height:auto;border-radius:0}
+.nav-tree .nav-f .tl-e:not(.end)::after{left:0;top:0;bottom:0;width:0;border-left:2px solid #cfcfd5}
+.nav-tree .nav-f .tl-e:not(.end)::before{left:0;right:0;top:calc(50% - 1px);height:0;border-top:2px solid #cfcfd5}
+.nav-tree .nav-f .tl-e.end{bottom:auto;height:calc(50% + 1px)}
+.nav-tree .nav-f .tl-e.end::before{left:0;top:0;width:100%;height:100%;border-left:2px solid #cfcfd5;border-bottom:2px solid #cfcfd5;border-bottom-left-radius:9px}
+.nav-tree .nav-f .tl-e.end::after{display:none}
