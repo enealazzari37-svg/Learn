@@ -3,6 +3,7 @@
    Treffer sind immer ganze Texte (Textknoten bzw. Attribut). Dynamische Texte mit Zahlen stehen in RX (Regex). */
 window.LPL_APP = {
   EN: {
+    "Dateien anhängen": "Attach files", "Spracheingabe": "Voice input", "Studix AI – Modell wählen": "Studix AI – choose model", "Spracheingabe wird von diesem Browser nicht unterstützt.": "Voice input isn't supported by this browser.", "Mikrofon-Zugriff ist blockiert – erlaube ihn in den Browser-Einstellungen.": "Microphone access is blocked – allow it in your browser settings.", "KI ist ausgeschaltet – siehe Einstellungen → Studix AI.": "AI is switched off – see Settings → Studix AI.", "Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI).": "Studix AI isn't set up yet (Settings → Studix AI).",
     "KI-Funktionen": "AI features", "Ausgeschaltet": "Switched off", "Weitere Modelle": "More models", "Gemini-Modelle gibt es mit Essential und Pro.": "Gemini models come with Essential and Pro.", "Studix wählt für jede Aufgabe ein passendes Modell. Wie stark ein Modell auf dein Kontingent zählt, steht jeweils dabei.": "Studix picks a suitable model for every task. How much each model counts towards your allowance is shown next to it.",
     "Dein persönlicher Lern-Tutor – erklärt, fragt ab, fasst zusammen und korrigiert. Direkt in deinen Fächern und Dokumenten.": "Your personal learning tutor – explains, quizzes, summarises and corrects. Right inside your subjects and documents.",
     "Aktiv": "Active",

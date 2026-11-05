@@ -5458,3 +5458,20 @@ html[data-theme="dark"] svg.prov-logo[data-keep-colors]{filter:invert(1) contras
 @media (max-width:560px){.aikv .seg{display:flex;width:100%}.aikv .seg button{padding:9px 8px;min-width:0}.aif{padding:12px}}
 .setsec[data-s=ai].on>.aiuse[hidden]+.aikv{grid-column:1/-1}
 .aih-i{color:#0f0f12}
+/* KI-Eingabeleiste: weisse Karte, unten + · Studix AI · Mikrofon · Senden */
+.chatbox .t-in.cmp,.aip .chatbox .t-in.cmp,#aiside .t-in.cmp,.aipane .t-in.cmp,.hdock .t-in.cmp,.hdock .hd-in .t-in.cmp{border-radius:26px!important;padding:16px 16px 12px 20px!important;gap:10px!important;background:#fff!important}
+.t-in.cmp .tin{font-size:17px!important;font-weight:500;color:#141218;padding:4px 0 2px!important}
+.t-in.cmp .tin::placeholder{color:#9a9aa6;font-weight:500}
+.t-in.cmp .cmp-bar{gap:8px;margin-top:4px}
+.t-in.cmp .cmp-plus{width:34px;height:34px;border:1.6px solid #d9d8e0;color:#6a6a78;background:#fff!important}
+.t-in.cmp .cmp-plus:hover{border-color:#b8b7c2;color:#141218}.t-in.cmp .cmp-plus svg{width:17px;height:17px}
+.t-in.cmp .mdl.cmp-ai{background:none!important;height:34px;padding:0 8px 0 4px;gap:7px;font-size:15px;font-weight:600;color:#4a4a58;border-radius:10px}
+.t-in.cmp .mdl.cmp-ai:hover{background:#f4f4f7!important}
+.t-in.cmp .mdl.cmp-ai>svg:first-child{width:19px;height:19px;color:#e94e1b;border-radius:0}
+.t-in.cmp .mdl.cmp-ai span{max-width:none;display:inline}
+.t-in.cmp .cmp-mic{width:38px;height:38px;color:#6a6a78;background:none!important}.t-in.cmp .cmp-mic svg{width:21px;height:21px}
+.t-in.cmp .cmp-mic:hover{color:#141218;background:#f4f4f7!important}
+.t-in.cmp .cmp-mic.rec{color:#fff;background:#e5484d!important;animation:micPulse 1.2s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.35)}50%{box-shadow:0 0 0 7px rgba(229,72,77,0)}}
+.t-in.cmp .send{width:40px;height:40px;background:#141218!important}.t-in.cmp .send svg{width:19px;height:19px;stroke-width:2.4}
+@media (prefers-reduced-motion:reduce){.t-in.cmp .cmp-mic.rec{animation:none}}

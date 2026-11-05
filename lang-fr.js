@@ -3,6 +3,7 @@
    Dynamische Texte mit Zahlen und Daten stehen in RX. */
 window.LPL_FR = {
   FR: {
+    "Dateien anhängen": "Joindre des fichiers", "Spracheingabe": "Saisie vocale", "Studix AI – Modell wählen": "Studix AI – choisir le modèle", "Spracheingabe wird von diesem Browser nicht unterstützt.": "La saisie vocale n’est pas prise en charge par ce navigateur.", "Mikrofon-Zugriff ist blockiert – erlaube ihn in den Browser-Einstellungen.": "L’accès au micro est bloqué – autorise-le dans les réglages du navigateur.", "KI ist ausgeschaltet – siehe Einstellungen → Studix AI.": "L’IA est désactivée – voir Paramètres → Studix AI.", "Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI).": "Studix AI n’est pas encore configuré (Paramètres → Studix AI).",
     "KI-Funktionen": "Fonctions IA", "Gemini-Modelle gibt es mit Essential und Pro.": "Les modèles Gemini sont inclus avec Essential et Pro.", "Ausgeschaltet": "Désactivé", "Weitere Modelle": "Autres modèles", "Studix wählt für jede Aufgabe ein passendes Modell. Wie stark ein Modell auf dein Kontingent zählt, steht jeweils dabei.": "Studix choisit un modèle adapté à chaque tâche. Le poids de chaque modèle sur ton quota est indiqué à côté.",
     "Dein persönlicher Lern-Tutor – erklärt, fragt ab, fasst zusammen und korrigiert. Direkt in deinen Fächern und Dokumenten.": "Ton tuteur personnel – il explique, interroge, résume et corrige. Directement dans tes matières et documents.",
     "Aktiv": "Actif",
