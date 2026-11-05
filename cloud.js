@@ -7,7 +7,8 @@ function loadSupabaseLib() {
   return new Promise((res, rej) => {
     if (window.supabase) return res();
     const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js";
-    s.onload = res; s.onerror = () => rej(new Error("offline")); document.head.appendChild(s);
+    const t = setTimeout(() => rej(new Error("timeout")), 8000);   // hängt das CDN, nicht ewig warten (sonst bleibt die Seite weiß)
+    s.onload = () => { clearTimeout(t); res(); }; s.onerror = () => { clearTimeout(t); rej(new Error("offline")); }; document.head.appendChild(s);
   });
 }
 /* jede lokale Änderung wird (entprellt) in die Cloud geschrieben */
@@ -79,17 +80,18 @@ async function cloudTokenHash() {
   if (error) return setTimeout(() => toast("Der Link ist abgelaufen oder wurde schon benutzt – bitte fordere eine neue E-Mail an."), 800);
   if (type === "recovery") setTimeout(recoveryModal, 900); else if (type === "email_change") setTimeout(() => toast("Deine neue E-Mail-Adresse ist bestätigt."), 900);
 }
+const withTimeout = (p, ms, fb) => Promise.race([Promise.resolve(p), new Promise(r => setTimeout(() => r(fb), ms))]);
 async function cloudInit() {
   if (!cloudOn() || EMBED_MODE) return;   // die Vorschau auf der Startseite hat nie ein Konto
   try { await loadSupabaseLib(); } catch { return; }
   const oauthBack = /access_token=|[?&#]code=/.test(location.hash + location.search) && !/token_hash=/.test(location.search);   // Rueckkehr von Google/Apple
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   try { await cloudTokenHash(); } catch {}
-  const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
+  const { data } = await withTimeout(CLOUD.sb.auth.getSession(), 10000, { data: { session: null } }); CLOUD.user = data?.session?.user || null;
   if (oauthBack && CLOUD.user) history.replaceState(null, "", location.pathname + "#/app");
-  if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
+  if (CLOUD.user) { try { const { error } = await withTimeout(CLOUD.sb.auth.getUser(), 6000, {}); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
-  if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
+  if (CLOUD.user) { try { if (await withTimeout(cloudPull(), 12000, false)) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
   await accessCheck(); await ageGate();
   CLOUD.sb.auth.onAuthStateChange((ev, s) => { if (ev === "PASSWORD_RECOVERY") setTimeout(recoveryModal, 600); const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);

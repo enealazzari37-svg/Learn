@@ -340,7 +340,9 @@ function renderLanding() {
 /* ---------- boot ---------- */
 (async function () {
   await loadData(); try { migrateFolders(); } catch {}
-  try { await cloudInit(); } catch {}
+  /* Start nie an der Cloud aufhängen: nach spätestens 8 s wird die Seite gezeichnet, auch wenn Anmeldung/Sync noch laufen (sonst bleibt sie nach dem Google-Login weiß) */
+  { let late = false; const ci = cloudInit().catch(() => {}); await Promise.race([ci, new Promise(r => setTimeout(() => { late = true; r(); }, 8000))]);
+    if (late) ci.then(() => { try { $("#app").innerHTML = ""; route(); } catch {} }); }
   const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.plus) { BILL.cfg = j.plus; try { proApply(); } catch {} }}).catch(() => {}) : Promise.resolve();
   await Promise.race([Promise.all([probeServerAI(), cfgP]), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
