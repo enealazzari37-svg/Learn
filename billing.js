@@ -366,6 +366,7 @@ function aiuBlockInner() {
   return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung${AIU.pro ? " · Pro" : ""}</span>${big}</div>${!AIU.unl && aiuUp() ? `<button class="btn" id="aiuse-up" type="button">${aiuUp()}</button>` : ""}`;
 }
 function aiuBlockFill(m) {
-  const w = $("#aiuse", m); if (!w) return; const h = aiuBlockInner(); w.innerHTML = h; w.hidden = !h;
-  const up = $("#aiuse-up", w); if (up) up.onclick = () => window.__showSetTab && window.__showSetTab("pro");
+  const h = aiuBlockInner();
+  ["#aiuse", "#aiuse-ai"].forEach((sel, i) => { const w = $(sel, m); if (!w) return; w.innerHTML = i ? h.replace('id="aiuse-up"', 'data-aiuse-up') : h; w.hidden = !h;
+    const up = $(i ? "[data-aiuse-up]" : "#aiuse-up", w); if (up) up.onclick = () => window.__showSetTab && window.__showSetTab("pro"); });
 }

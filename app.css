@@ -5418,3 +5418,43 @@ svg.prov-logo{color:#15151c}
 
 /* Farb-Logos der KI-Anbieter: gleicht den globalen Dark-Filter (invert .93 + hue 180) exakt aus, damit die Originalfarben 1:1 erscheinen */
 html[data-theme="dark"] svg.prov-logo[data-keep-colors]{filter:invert(1) contrast(1.1628) hue-rotate(180deg)}
+/* Einstellungen → Studix AI: Kopf, Funktionen, Modelle, Hinweise */
+.aihero{display:flex;align-items:center;gap:20px;padding:24px 26px;border:1px solid #ececf0;border-radius:24px;background:linear-gradient(135deg,#fafafb 0%,#f1f1f4 100%);margin-top:4px}
+.aih-i{width:64px;height:64px;border-radius:20px;background:#0f0f12;color:#fff;display:grid;place-items:center;flex:none}.aih-i svg{width:30px;height:30px}
+.aih-t{flex:1;min-width:0}.aih-t h1{margin:0;font-size:28px;letter-spacing:-.03em}.aih-t p{margin:4px 0 0;color:#6b6b73;font-size:15px;line-height:1.45;max-width:640px}
+.aih-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.aih-c{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:#fff;border:1px solid #e4e4ea;font-size:13px;font-weight:600;color:#333}.aih-c svg{width:14px;height:14px}.aih-c .ldot{margin:0}
+.aih-c.ok{background:#0f0f12;color:#fff;border-color:#0f0f12}.aih-c.ok .ldot.on{background:#3ddc84}
+.aihero>.btn{flex:none}
+@media (max-width:640px){.aihero{flex-direction:column;align-items:flex-start;padding:20px}.aihero>.btn{width:100%;justify-content:center}}
+.aikv .kv>span{display:flex;align-items:center;gap:8px}.aikv .kv>span svg{width:16px;height:16px;color:#8a8a93;flex:none}
+.aikv .kvh{display:block}.aikv .seg{margin:0;align-self:flex-start}
+.aisw{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:15px}.aisw b{font-weight:500}
+.aisw input{position:absolute;opacity:0;pointer-events:none}
+.aisw i{width:40px;height:24px;border-radius:999px;background:#d6d6dc;position:relative;flex:none;transition:background .2s}
+.aisw i::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.aisw input:checked+i{background:#0f0f12}.aisw input:checked+i::after{transform:translateX(16px)}
+.aisw input:focus-visible+i{outline:2px solid #0f0f12;outline-offset:2px}
+.aif-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:18px!important}
+.aif{display:flex;gap:12px;padding:14px;border:1px solid #ececf0;border-radius:18px;background:#fff}
+.aif-i{width:38px;height:38px;border-radius:12px;background:#f3f3f5;color:#222;display:grid;place-items:center;flex:none}.aif-i svg{width:19px;height:19px}
+.aif b{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:15px}
+.aif p{margin:4px 0 6px;color:#6b6b73;font-size:13.5px;line-height:1.45}
+.aif small{display:inline-flex;align-items:center;gap:4px;color:#8a8a93;font-size:12px;font-weight:600}.aif small svg{width:12px;height:12px}
+.aif.lock{background:#fafafb}.aif.lock .aif-i{opacity:.55}
+.aif-tag{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6b6b73;background:#ececf0;border-radius:999px;padding:2px 8px}
+.aif-tag.pro{background:#0f0f12;color:#fff}
+.aif-up{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px!important;padding:12px 16px;border-radius:16px;background:#f4f4f6;font-size:14px;color:#444}
+@media (max-width:560px){.aif-up{flex-direction:column;align-items:stretch}}
+.aim-l{display:grid;gap:2px;margin-top:10px!important}
+.aim{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed #e2e2e8}.aim:last-child{border-bottom:0}
+.aim-i{width:32px;height:32px;border-radius:10px;background:#f3f3f5;display:grid;place-items:center;flex:none}.aim-i svg{width:17px;height:17px}
+.aim b{display:flex;align-items:center;gap:6px;font-size:14.5px}.aim small{color:#8a8a93;font-size:12.5px}
+.aii{list-style:none;padding:0;display:grid;gap:14px;margin-top:16px!important}
+.aii li{display:flex;gap:12px;align-items:flex-start}.aii li>svg{width:18px;height:18px;flex:none;margin-top:2px;color:#0f0f12}
+.aii b{display:block;font-size:14.5px}.aii span{color:#6b6b73;font-size:13.5px;line-height:1.45}
+.setsec[data-s=ai].on>.aiuse{margin:0!important}
+.aih-i{background:#f3f3f5;border:1px solid #e4e4ea}.aih-i svg{width:34px;height:34px}
+@media (max-width:560px){.aikv .seg{display:flex;width:100%}.aikv .seg button{padding:9px 8px;min-width:0}.aif{padding:12px}}
+.setsec[data-s=ai].on>.aiuse[hidden]+.aikv{grid-column:1/-1}
+.aih-i{color:#0f0f12}
