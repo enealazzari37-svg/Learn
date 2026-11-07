@@ -652,9 +652,9 @@ V.settings = m => {
 
 
 /* Platzhalter im Chat-Eingabefeld: tippt nacheinander verschiedene Beispiel-Fragen (nur solange das Feld leer und nicht fokussiert ist) */
-const PH_LIST = ["Frag Studix AI etwas …", "Erkläre mir die Zellatmung …", "Erstelle 10 Karteikarten zu Mathe …", "Fasse mein letztes Dokument zusammen …", "Mach ein Quiz zu meiner nächsten Prüfung …", "Was soll ich heute zuerst lernen? …", "Erstelle einen Lernplan für diese Woche …", "Hilf mir bei dieser Aufgabe …"];
+const PH_SRC = ["Frag Studix AI etwas …", "Erkläre mir die Zellatmung …", "Erstelle 10 Karteikarten zu Mathe …", "Fasse mein letztes Dokument zusammen …", "Mach ein Quiz zu meiner nächsten Prüfung …", "Was soll ich heute zuerst lernen? …", "Erstelle einen Lernplan für diese Woche …", "Hilf mir bei dieser Aufgabe …"];
 function phCycle(inp) {
-  if (!inp || inp.dataset.ph) return; inp.dataset.ph = "1"; const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; let i = 0, tm;
+  if (!inp || inp.dataset.ph) return; inp.dataset.ph = "1"; const PH_LIST = PH_SRC.map(s => typeof LPL !== "undefined" && LPL.lang !== "de" ? LPL.tt(s) : s), reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; let i = 0, tm;
   const idle = () => document.activeElement !== inp && !inp.value;
   const step = (txt, n, dir) => {
     if (!inp.isConnected) return;

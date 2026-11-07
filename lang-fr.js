@@ -952,7 +952,7 @@ window.LPL_FR = {
     "Schwer": "Difficile",
     "Gut": "Bien",
     "Leicht": "Facile",
-    "Antwort zeigen": "Afficher la réponse",
+    "Antwort zeigen": "Afficher la réponse", "Frage": "Question", "Antwort": "Réponse", "alles erledigt": "tout est fait", "Erkläre mir die Zellatmung …": "Explique-moi la respiration cellulaire …", "Erstelle 10 Karteikarten zu Mathe …": "Crée 10 fiches de maths …", "Fasse mein letztes Dokument zusammen …": "Résume mon dernier document …", "Mach ein Quiz zu meiner nächsten Prüfung …": "Fais un quiz pour mon prochain examen …", "Was soll ich heute zuerst lernen? …": "Que dois-je réviser en premier aujourd’hui ? …", "Erstelle einen Lernplan für diese Woche …": "Crée un plan de révision pour cette semaine …", "Hilf mir bei dieser Aufgabe …": "Aide-moi avec cet exercice …",
     "Neues Quiz": "Nouveau quiz",
     "Aus Dokument": "À partir d’un document",
     "Schwierigkeit": "Difficulté",

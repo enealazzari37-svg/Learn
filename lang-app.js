@@ -607,7 +607,7 @@ window.LPL_APP = {
     "Schwer": "Hard",
     "Gut": "Good",
     "Leicht": "Easy",
-    "Antwort zeigen": "Show answer",
+    "Antwort zeigen": "Show answer", "Frage": "Question", "Antwort": "Answer", "alles erledigt": "all done", "Erkläre mir die Zellatmung …": "Explain cell respiration to me …", "Erstelle 10 Karteikarten zu Mathe …": "Make 10 flashcards on math …", "Fasse mein letztes Dokument zusammen …": "Summarize my last document …", "Mach ein Quiz zu meiner nächsten Prüfung …": "Quiz me for my next exam …", "Was soll ich heute zuerst lernen? …": "What should I study first today? …", "Erstelle einen Lernplan für diese Woche …": "Make a study plan for this week …", "Hilf mir bei dieser Aufgabe …": "Help me with this exercise …",
     "Neues Quiz": "New quiz",
     "Aus Dokument": "From document",
     "Schwierigkeit": "Difficulty",
