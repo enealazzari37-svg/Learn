@@ -18,7 +18,7 @@ V.join = async (m, id) => {
   const { data, error } = await CLOUD.sb.rpc("lumi_share_get", { p_id: id }); const row = data && data[0];
   if (error || !row || row.rev < 0) return fail("Diese Einladung gibt es nicht mehr");
   const nid = uid(); D.docs.unshift({ id: nid, type: "note", title: row.title || "Geteilte Notiz", subjectId: "", folderId: docFolder, paper: D.profile.paper || "white", share: id, shareRev: row.rev, updated: Date.now(), created: Date.now(), text: htmlToText(row.html) });
-  await KV.set("html:" + nid, row.html || ""); await KV.set("tb:" + nid, row.tb || []); if ((row.ink || []).length) await KV.set("ink:" + nid, row.ink); save();
+  await KV.set("html:" + nid, cleanHtml(row.html || "")); await KV.set("tb:" + nid, row.tb || []); if ((row.ink || []).length) await KV.set("ink:" + nid, row.ink); save();
   toast("Du arbeitest jetzt mit – Änderungen werden live geteilt"); location.replace("#/app/doc/" + nid);
 };
 
@@ -48,7 +48,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   let base = [];
   const blocksNow = () => [...body.children].map(e => e.outerHTML);
   function mergeHtml(html) {
-    const tmp = document.createElement("div"); tmp.innerHTML = html; const rem = [...tmp.children], remH = rem.map(e => e.outerHTML);
+    const tmp = document.createElement("div"); tmp.innerHTML = cleanHtml(html); const rem = [...tmp.children], remH = rem.map(e => e.outerHTML);
     const loc = [...body.children], n = Math.max(rem.length, loc.length);
     for (let i = n - 1; i >= 0; i--) {
       const r = remH[i], l = loc[i] ? loc[i].outerHTML : undefined, b = base[i];

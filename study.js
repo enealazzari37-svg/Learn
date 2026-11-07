@@ -726,7 +726,7 @@ V.doc = async (m, id) => {
   return noteEditor(m, d);
 };
 async function noteEditor(m, d) {
-  const html = (await KV.get("html:" + d.id)) || "";
+  const html = d.share ? cleanHtml((await KV.get("html:" + d.id)) || "") : ((await KV.get("html:" + d.id)) || "");
   const paperOf = () => d.paper || D.profile.paper || "white";
   const fp = folderPath(d.folderId), BTN = (c, i, t) => `<button class="tbtn" data-c="${c}" title="${t}">${ic(i)}</button>`;
   m.classList.add("doc-full");

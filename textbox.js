@@ -18,7 +18,7 @@ function mountTextBoxes(paper, opts = {}) {
   function build(b) {
     const el = document.createElement("div"); el.className = "tbx"; el.dataset.id = b.id;
     el.innerHTML = `<div class="tbx-in" contenteditable="true" spellcheck="true" data-ph="Text …"></div><span class="tbx-mv" data-h="mv"></span>${["nw", "n", "ne", "e", "se", "s", "sw", "w"].map(h => `<i class="tbx-h h-${h}" data-h="${h}"></i>`).join("")}`;
-    const inn = el.querySelector(".tbx-in"); inn.innerHTML = b.html || "";
+    const inn = el.querySelector(".tbx-in"); inn.innerHTML = cleanHtml(b.html || "");
     place(el, b); style(el, b); layer.appendChild(el);
     inn.addEventListener("input", () => { b.html = inn.innerHTML; changed(); });
     inn.addEventListener("focus", () => select(b.id));

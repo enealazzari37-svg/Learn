@@ -482,6 +482,19 @@ function loadScript(src) {
   if (!$(`script[src="${src}"][data-ld]`) && $(`script[src="${src}"]`)) return Promise.resolve();
   return (_scripts[src] = new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.dataset.ld = "1"; s.onload = res; s.onerror = () => { s.remove(); delete _scripts[src]; rej(new Error("load " + src)); }; document.head.appendChild(s); }));
 }
+/* Sicherheit: fremdes HTML (geteilte Notizen) bereinigen – entfernt Skripte, Event-Handler und gefährliche Adressen. Parst in einem inerten <template>. */
+function cleanHtml(html) {
+  const t = document.createElement("template"); t.innerHTML = String(html || "");
+  t.content.querySelectorAll("script,iframe,frame,object,embed,link,meta,base,form,style,noscript,applet").forEach(e => e.remove());
+  t.content.querySelectorAll("*").forEach(e => {
+    for (const a of [...e.attributes]) {
+      const n = a.name.toLowerCase(), v = a.value.replace(/[\u0000-\u0020\u00a0]+/g, "").toLowerCase();
+      if (n.startsWith("on") || n === "srcdoc" || n === "formaction") e.removeAttribute(a.name);
+      else if (/^(href|src|xlink:href|action|poster|data)$/.test(n) && (/^(javascript|vbscript):/.test(v) || (/^data:/.test(v) && !/^data:image\/(png|jpe?g|gif|webp|avif|bmp);/.test(v)))) e.removeAttribute(a.name);
+    }
+  });
+  return t.innerHTML;
+}
 async function fileText(b, name, mime) {
   let t = "";
   try {
