@@ -11,7 +11,7 @@ const name=process.argv[2], FPS=30, out=__dirname+'/out/'+name, preview=process.
   await p.waitForTimeout(2500);
   await p.evaluate(()=>{const d=REEL.doc();REEL.css('.clog{visibility:hidden!important}.nav-i.prof small{font-size:0!important}.nav-i.prof small::after{content:"Student";font-size:11px}');});
   await p.addScriptTag({content:cfg});await p.waitForTimeout(1500);
-  const dur=await p.evaluate(()=>REEL.dur);
+  const dur=await p.evaluate(()=>REEL.dur);const taps=await p.evaluate(()=>REEL.taps.map(x=>x.t));fs.writeFileSync(`${out}-taps.json`,JSON.stringify(taps));
   const cdp=await c.newCDPSession(p);await cdp.send('Animation.enable');
   // Echtzeit-Verhältnis messen
   let t0=Date.now();for(let i=0;i<5;i++)await p.screenshot({type:'jpeg',quality:90});const wall=(Date.now()-t0)/5/1000+0.01;
@@ -23,5 +23,5 @@ const name=process.argv[2], FPS=30, out=__dirname+'/out/'+name, preview=process.
   }
   await b.close();
   if(preview){execSync(`ffmpeg -v error -y -pattern_type glob -i '${out}/*.jpg' -vf "scale=216:-1,tile=10x${Math.ceil(N/step/10)}" -frames:v 1 ${__dirname}/out/${name}-sheet.jpg`);console.log('sheet');}
-  else{execSync(`ffmpeg -v error -y -framerate ${FPS} -i '${out}/%05d.jpg' -f lavfi -t ${dur} -i anullsrc=r=48000:cl=stereo -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -profile:v high -movflags +faststart -c:a aac -b:a 128k -shortest ${__dirname}/out/${name}.mp4`);console.log('video done');}
+  else{execSync(`python3 ${__dirname}/music.py ${dur} ${out}-taps.json ${out}.wav`);execSync(`ffmpeg -v error -y -framerate ${FPS} -i '${out}/%05d.jpg' -i ${out}.wav -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -profile:v high -movflags +faststart -af loudnorm=I=-14:TP=-1.5:LRA=9 -c:a aac -b:a 192k -ar 48000 -shortest ${__dirname}/out/${name}.mp4`);console.log('video done');}
 })();

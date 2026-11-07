@@ -9,4 +9,4 @@ node scripts/reels/record.js planner --preview     # schnelles Kontaktblatt zum 
 ```
 
 Neue Reels: `reels/<name>.js` anlegen (Headlines `hls`, Kamera `cam`, Cursor `cur`, Aktionen `acts`, Abschluss `end`).
-Braucht Playwright (Chromium) und ffmpeg.
+Musik und Tipp-Geräusche erzeugt `music.py` (eigener, lizenzfreier Track). Braucht Playwright (Chromium), ffmpeg, Python mit numpy.

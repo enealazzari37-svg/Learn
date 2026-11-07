@@ -22,6 +22,8 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#fff;font-family
 #foot img{width:40px;height:40px}
 #cur{position:absolute;left:0;top:0;width:52px;height:52px;pointer-events:none;z-index:50;will-change:transform;filter:drop-shadow(0 4px 8px rgba(0,0,0,.25))}
 #ring{position:absolute;left:0;top:0;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;border:5px solid rgba(91,61,245,.55);pointer-events:none;z-index:49;opacity:0}
+#touch{position:absolute;left:0;top:0;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(20,20,30,.22);box-shadow:0 6px 18px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.6);pointer-events:none;z-index:49;opacity:0;backdrop-filter:blur(2px)}
+#ring{border-color:rgba(255,255,255,.9)!important;box-shadow:0 0 0 2px rgba(20,20,30,.15)}
 #end{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;z-index:60}
 #end img{width:170px;height:170px;margin-bottom:46px}
 #end h1{font:800 110px/1 "Inter Display",sans-serif;letter-spacing:-.05em;color:#0a0a0a}
@@ -35,7 +37,7 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#fff;font-family
 <div id="top"><div id="badge"></div><div id="hl"></div></div>
 <div id="dev"><div id="frame"></div><div id="screen"><iframe id="app" src="index.html?embed=1#/app/today"></iframe></div></div>
 <div id="fadeT"></div><div id="fadeB"></div><div id="foot"><img src="logo.svg" alt=""><span>studix.space</span></div>
-<div id="ring"></div>
+<div id="ring"></div><div id="touch"></div>
 <svg id="cur" viewBox="0 0 32 32"><path d="M7 3.5v21.2l5.3-5.1 3.6 8.1 3.7-1.6-3.6-8h7.4z" fill="#111" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
 <div id="end"><img src="logo.svg" alt=""><h1 id="endT"></h1><p id="endS"></p><div class="cta" id="endC">Free at studix.space</div></div>
 <script>
@@ -45,7 +47,7 @@ const ICONS={cards:'<rect x="4" y="8" width="14" height="11" rx="2.5"/><path d="
 const REEL={
   W:834,H:1194,doc:()=>app.contentDocument,win:()=>app.contentWindow,
   base:{x:99,y:452,z:1},
-  cam:[], hls:[], acts:[], tweens:[], cur:{pts:[]}, clicks:[], end:null, fired:new Set(),
+  cam:[], hls:[], acts:[], tweens:[], taps:[], cur:{pts:[]}, clicks:[], end:null, fired:new Set(),
   setup(cfg){Object.assign(this,cfg);$("#badge").innerHTML=`<svg viewBox="0 0 24 24">${ICONS[cfg.icon]||""}</svg>${cfg.badge}`;
     $("#hl").innerHTML=this.hls.map((h,i)=>`<div class="hl" id="h${i}">${h.a}<span>${h.b}</span></div>`).join("");
     if(cfg.end){$("#endT").innerHTML=cfg.end.t;$("#endS").textContent=cfg.end.s;}
@@ -73,7 +75,12 @@ const REEL={
     this.curTick(t);
     if(this.end){const o=ease(clamp((t-this.end.at)/.6));$("#end").style.opacity=o;$("#end").style.transform=`scale(${1.04-o*.04})`;}
   },
-  curTick(t){const P=this.cur.pts;const el=$("#cur"),ring=$("#ring");if(!P.length){el.style.opacity=0;return;}
+  /* Finger-Tipps wie bei iPad-Bildschirmaufnahmen: Kreis erscheint kurz vor dem Tipp, drückt, Welle, verschwindet */
+  tapTick(t){const el=$("#touch"),ring=$("#ring");let o=0,x=0,y=0,s=1,ro=0,rs=.5;
+    for(const tp of this.taps){const d=t-tp.t;if(d<-.35||d>.55)continue;if(d<.02||!tp._p){const q=this.pt(tp.sel,tp.dx??.5,tp.dy??.5);if(q)tp._p=q;}if(!tp._p)continue;
+      x=tp._p.x;y=tp._p.y;o=d<0?clamp((d+.35)/.2):1-clamp((d-.18)/.3);s=d<0?1.12-.12*clamp((d+.35)/.35):d<.15?.86+.14*(d/.15):1;if(d>=0&&d<.5){ro=1-d/.5;rs=.5+d/.5*.9;}}
+    el.style.opacity=o;el.style.transform=`translate(${x}px,${y}px) scale(${s})`;ring.style.opacity=ro;ring.style.transform=`translate(${x}px,${y}px) scale(${rs})`;$("#cur").style.opacity=0;},
+  curTick(t){if(this.taps.length)return this.tapTick(t);const P=this.cur.pts;const el=$("#cur"),ring=$("#ring");if(!P.length){el.style.opacity=0;return;}
     let a=null,b=null;for(const p of P){if(p.t<=t)a=p;else{b=b||p;}}
     const pos=p=>{const q=p.sel?this.pt(p.sel,p.dx??.5,p.dy??.5):p;return q?{x:q.x+(p.ox||0),y:q.y+(p.oy||0)}:{x:540,y:2100}};
     let x,y;if(!a){const q=pos(P[0]);x=q.x+160;y=q.y+420;}else if(!b||t>=b.t-(b.d||.7)){if(b&&t<b.t){const p=ease(clamp((t-(b.t-(b.d||.7)))/(b.d||.7)));const A=pos(a),B=pos(b);x=lerp(A.x,B.x,p);y=lerp(A.y,B.y,p);}else{const q=pos(a);x=q.x;y=q.y;}}else{const q=pos(a);x=q.x;y=q.y;}
